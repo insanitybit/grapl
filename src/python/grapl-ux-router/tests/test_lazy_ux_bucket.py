@@ -4,8 +4,10 @@ from typing import cast
 from unittest import TestCase
 import boto3
 import pytest
+
+from grapl_common.env_helpers import S3ResourceFactory
 from grapl_common.grapl_logger import get_module_grapl_logger
-from grapl_ux_router.src.lazy_ux_bucket import LazyUxBucket
+from grapl_ux_router.lazy_ux_bucket import LazyUxBucket
 
 LOGGER = get_module_grapl_logger()
 UX_BUCKET_NAME = os.environ["UX_BUCKET_NAME"]
@@ -13,16 +15,18 @@ UX_BUCKET_NAME = os.environ["UX_BUCKET_NAME"]
 
 @pytest.mark.integration_test
 class TestLazyUXBucket(unittest.TestCase):
-    def test_get_resource(self):
-        put_s3_object("index.html", INDEX_HTML)
+    def test_get_resource_index_html(self):
+        _put_s3_object("index.html", INDEX_HTML)
         bucket = LazyUxBucket()
+        response = bucket.get_resource("index.html")
+        assert(response == INDEX_HTML)
 
 
-
-def put_s3_object(path: str, data: bytes)
+def _put_s3_object(path: str, data: bytes) -> None:
     s3 = S3ResourceFactory(boto3).from_env()
     bucket = s3.Bucket(UX_BUCKET_NAME)
     bucket.put_object(Body=data, Key=path)
+
 
 INDEX_HTML = b'''
 <!DOCTYPE html>

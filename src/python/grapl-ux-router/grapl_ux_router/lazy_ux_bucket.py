@@ -1,3 +1,18 @@
+from typing import Optional, TYPE_CHECKING
+import time
+import logging
+import sys
+import os
+
+from grapl_common.grapl_logger import get_module_grapl_logger
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3.service_resource import Bucket
+
+LOGGER = get_module_grapl_logger()
+
+IS_LOCAL = bool(os.environ.get("IS_LOCAL", False))
+
 class LazyUxBucket:
     def __init__(self) -> None:
         self.ux_bucket: Optional[Bucket] = None

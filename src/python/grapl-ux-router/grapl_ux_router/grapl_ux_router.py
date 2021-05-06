@@ -16,8 +16,6 @@ from lazy_ux_bucket import LazyUxBucket
 if TYPE_CHECKING:
     from mypy_boto3_s3.service_resource import Bucket
 
-    pass
-
 IS_LOCAL = bool(os.environ.get("IS_LOCAL", False))
 GRAPL_LOG_LEVEL = os.environ.get("GRAPL_LOG_LEVEL", "ERROR")
 UX_BUCKET_NAME = os.environ["UX_BUCKET_NAME"]
