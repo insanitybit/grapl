@@ -44,8 +44,6 @@ MEDIA_TYPE_MAP = {
 if IS_LOCAL:
     assert len(MEDIA_TYPE_MAP) < 15
 
-
-
 UX_BUCKET = LazyUxBucket()
 
 

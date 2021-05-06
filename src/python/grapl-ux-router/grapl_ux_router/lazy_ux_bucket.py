@@ -4,6 +4,9 @@ import logging
 import sys
 import os
 
+import boto3
+
+from grapl_common.env_helpers import S3ResourceFactory
 from grapl_common.grapl_logger import get_module_grapl_logger
 
 if TYPE_CHECKING:
@@ -12,6 +15,8 @@ if TYPE_CHECKING:
 LOGGER = get_module_grapl_logger()
 
 IS_LOCAL = bool(os.environ.get("IS_LOCAL", False))
+
+UX_BUCKET_NAME = os.environ["UX_BUCKET_NAME"]
 
 class LazyUxBucket:
     def __init__(self) -> None:
@@ -43,7 +48,7 @@ class LazyUxBucket:
         if IS_LOCAL:
             return self._retrieve_bucket_local()
         else:
-            s3 = boto3.resource("s3")
+            s3 = S3ResourceFactory(boto3).from_env()
             return s3.Bucket(UX_BUCKET_NAME)
 
     def _retrieve_bucket_local(self) -> Bucket:
