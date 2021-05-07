@@ -102,6 +102,7 @@ services:
       - GRAPL_API_HOST
       - GRAPL_HTTP_FRONTEND_PORT
 
+
   # TODO: Re-enable these tests after the following issues are resolved:
   # - https://github.com/grapl-security/issue-tracker/issues/385
   # - https://github.com/grapl-security/issue-tracker/issues/386

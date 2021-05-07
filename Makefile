@@ -206,6 +206,10 @@ test-unit-rust: build-test-unit-rust ## Build and run unit tests - Rust only
 test-unit-python: ## Run Python unit tests under Pants
 	./pants --tag="-needs_work" test :: --pytest-args="-m \"not integration_test\""
 
+.PHONY: test-integration-python
+test-integration-python: ## Run Python integration tests under Pants
+        ./pants test :: --pytest-args="-m \"integration_test\""
+
 .PHONY: test-unit-js
 test-unit-js: export COMPOSE_PROJECT_NAME := grapl-test-unit-js
 test-unit-js: export COMPOSE_FILE := ./test/docker-compose.unit-tests-js.yml
@@ -335,7 +339,7 @@ down: ## docker-compose down - both stops and removes the containers
 	# spins up in our network, but that docker-compose doesn't know
 	# about. This must be the network that is used in Localstack's
 	# LAMBDA_DOCKER_NETWORK environment variable.
-	-docker kill $(shell docker ps --quiet --filter=network=grapl-network)
+	#-docker kill $(shell docker ps --quiet --filter=network=grapl-network)
 	docker-compose $(EVERY_COMPOSE_FILE) down --timeout=0
 	docker-compose $(EVERY_COMPOSE_FILE) --project-name $(COMPOSE_PROJECT_INTEGRATION_TESTS) down --timeout=0
 	docker-compose $(EVERY_COMPOSE_FILE) --project-name $(COMPOSE_PROJECT_E2E_TESTS) down --timeout=0

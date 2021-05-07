@@ -21,6 +21,18 @@ class TestLazyUXBucket(unittest.TestCase):
         response = bucket.get_resource("index.html")
         assert(response == INDEX_HTML)
 
+    def test_get_resource_main_css(self):
+        _put_s3_object("main.css", MAIN_CSS)
+        bucket = LazyUxBucket()
+        response = bucket.get_resource("main.css")
+        assert(response == MAIN_CSS)
+
+    def test_get_resource_main_js(self):
+        _put_s3_object("main.js", MAIN_JS)
+        bucket = LazyUxBucket()
+        response = bucket.get_resource("main.js")
+        assert(response == MAIN_JS)
+
 
 def _put_s3_object(path: str, data: bytes) -> None:
     s3 = S3ResourceFactory(boto3).from_env()
@@ -28,7 +40,7 @@ def _put_s3_object(path: str, data: bytes) -> None:
     bucket.put_object(Body=data, Key=path)
 
 
-INDEX_HTML = b'''
+INDEX_HTML = b'''   
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -69,4 +81,22 @@ INDEX_HTML = b'''
     -->
   </body>
 </html>
+'''
+
+MAIN_CSS = b'''
+    body{
+        background-color: "black";
+        font-size: "16px"; 
+        font-color: "white";
+        display: "flex";
+    }
+'''
+
+MAIN_JS = b'''
+    testFn = () => {
+        console.log("test js file");
+        return "test js file"
+    }
+    
+    testFn()
 '''

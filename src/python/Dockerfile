@@ -255,6 +255,24 @@ RUN source venv/bin/activate && \
 RUN source venv/bin/activate && \
     cd grapl-ux-router && \
     pip install .
+    
+
+# test
+FROM ux-router-build AS ux-router-test
+
+ENV IS_LOCAL=True
+ENV DEPLOYMENT_NAME=local-grapl
+ENV UX_BUCKET_URL="ux_bucket_url"
+
+## Install test requirements
+COPY --chown=grapl --from=python-test-deps /home/grapl/python_test_deps python_test_deps
+RUN python_test_deps/install_requirements.sh
+
+## Steal and install grapl-tests-common
+COPY --chown=grapl python/grapl-tests-common grapl-tests-common
+RUN source venv/bin/activate && \
+    cd grapl-tests-common && \
+    pip install .
 
 
 # dgraph-ttl
