@@ -89,13 +89,6 @@ class DynamoDB(pulumi.ComponentResource):
             opts=pulumi.ResourceOptions(parent=self),
         )
 
-        self.static_mapping_table = DynamoDBTable(
-            f"{DEPLOYMENT_NAME}-static_mapping_table",
-            attrs=[{"name": "pseudo_key", "type": "S"}],
-            hash_key="pseudo_key",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-
         self.user_auth_table = DynamoDBTable(
             f"{DEPLOYMENT_NAME}-user_auth_table",
             attrs=[{"name": "username", "type": "S"}],
@@ -103,44 +96,8 @@ class DynamoDB(pulumi.ComponentResource):
             opts=pulumi.ResourceOptions(parent=self),
         )
 
-        self.asset_id_mappings = DynamoDBTable(
-            f"{DEPLOYMENT_NAME}-asset_id_mappings",
-            attrs=[
-                {"name": "pseudo_key", "type": "S"},
-                {"name": "c_timestamp", "type": "N"},
-            ],
-            hash_key="pseudo_key",
-            range_key="c_timestamp",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-
         self.dynamic_session_table = DynamoDBHistoryTable(
             f"{DEPLOYMENT_NAME}-dynamic_session_table",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-
-        self.file_history_table = DynamoDBHistoryTable(
-            f"{DEPLOYMENT_NAME}-file_history_table",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-        self.inbound_connection_history_table = DynamoDBHistoryTable(
-            f"{DEPLOYMENT_NAME}-inbound_connection_history_table",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-        self.ip_connection_history_table = DynamoDBHistoryTable(
-            f"{DEPLOYMENT_NAME}-ip_connection_history_table",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-        self.network_connection_history_table = DynamoDBHistoryTable(
-            f"{DEPLOYMENT_NAME}-network_connection_history_table",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-        self.outbound_connection_history_table = DynamoDBHistoryTable(
-            f"{DEPLOYMENT_NAME}-outbound_connection_history_table",
-            opts=pulumi.ResourceOptions(parent=self),
-        )
-        self.process_history_table = DynamoDBHistoryTable(
-            f"{DEPLOYMENT_NAME}-process_history_table",
             opts=pulumi.ResourceOptions(parent=self),
         )
 
