@@ -54,21 +54,11 @@ impl NodePredicate {
     pub fn generate_python_int_comparisons(&self) -> String {
         let mut comparisons = String::with_capacity(256);
 
-        comparisons = comparisons
-            + r#"        eq: Optional["grapl_analyzerlib.comparators.IntOrNot"] = None,"#
-            + "\n";
-        comparisons = comparisons
-            + r#"        gt: Optional["grapl_analyzerlib.comparators.IntOrNot"] = None,"#
-            + "\n";
-        comparisons = comparisons
-            + r#"        ge: Optional["grapl_analyzerlib.comparators.IntOrNot"] = None,"#
-            + "\n";
-        comparisons = comparisons
-            + r#"        lt: Optional["grapl_analyzerlib.comparators.IntOrNot"] = None,"#
-            + "\n";
-        comparisons = comparisons
-            + r#"        le: Optional["grapl_analyzerlib.comparators.IntOrNot"] = None,"#
-            + "\n";
+        comparisons += "        eq: Optional[grapl_analyzerlib.comparators.IntOrNot] = None,\n";
+        comparisons += "        gt: Optional[grapl_analyzerlib.comparators.IntOrNot] = None,\n";
+        comparisons += "        ge: Optional[grapl_analyzerlib.comparators.IntOrNot] = None,\n";
+        comparisons += "        lt: Optional[grapl_analyzerlib.comparators.IntOrNot] = None,\n";
+        comparisons += "        le: Optional[grapl_analyzerlib.comparators.IntOrNot] = None,\n";
         comparisons
     }
 
@@ -125,18 +115,14 @@ impl NodePredicate {
             .conflict_resolution
             .implies_cacheable()
             .as_static_python();
-        get_method = get_method
-            + &format!(
-                r#"    def get_{}(self, cached: bool = {}) -> Optional[{}]:"#,
-                predicate_name, cached, py_ty
-            )
-            + "\n";
-        get_method = get_method
-            + &format!(
-                r#"        return self.get_{}("{}", cached=cached)"#,
-                py_ty, predicate_name
-            )
-            + "\n\n";
+        get_method += &format!(
+            "    def get_{}(self, cached: bool = {}) -> Optional[{}]:\n",
+            predicate_name, cached, py_ty
+        );
+        get_method += &format!(
+            "        return self.get_{}('{}', cached=cached)\n\n",
+            py_ty, predicate_name
+        );
 
         get_method
     }
@@ -182,7 +168,7 @@ mod tests {
 
     #[test]
     fn generate_viewable_get_predicate_method() {
-        let expected_str = "    def get_predicate_name(self, cached: bool = True) -> Optional[str]:\n        return self.get_str(\"predicate_name\", cached=cached)\n\n";
+        let expected_str = "    def get_predicate_name(self, cached: bool = True) -> Optional[str]:\n        return self.get_str('predicate_name', cached=cached)\n\n";
         let node_predicate = NodePredicate {
             predicate_name: String::from("predicate_name"),
             description: None,
@@ -192,8 +178,8 @@ mod tests {
             nullable: true,
         };
         assert_eq!(
-            node_predicate.generate_viewable_get_predicate_method(),
-            expected_str
+            expected_str,
+            node_predicate.generate_viewable_get_predicate_method()
         );
     }
 }

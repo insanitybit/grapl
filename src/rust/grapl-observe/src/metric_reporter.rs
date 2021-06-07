@@ -23,9 +23,9 @@ use crate::{
 };
 
 pub mod common_strs {
-    pub const STATUS: &'static str = "status";
-    pub const SUCCESS: &'static str = "success";
-    pub const FAIL: &'static str = "fail";
+    pub const STATUS: &str = "status";
+    pub const SUCCESS: &str = "success";
+    pub const FAIL: &str = "fail";
 }
 
 pub enum HistogramUnit {
@@ -35,7 +35,7 @@ pub enum HistogramUnit {
     Millis,
     Micros,
 }
-const RESERVED_UNIT_TAG: &'static str = "_unit";
+const RESERVED_UNIT_TAG: &str = "_unit";
 
 type NowGetter = fn() -> DateTime<Utc>;
 
@@ -89,9 +89,9 @@ where
             tags,
         )?;
         let time = self.format_time_for_cloudwatch((self.utc_now)());
-        write!(
+        writeln!(
             self.out.as_mut(),
-            "MONITORING|{}|{}|{}\n",
+            "MONITORING|{}|{}|{}",
             self.service_name,
             time,
             self.buffer
@@ -191,7 +191,7 @@ impl Clone for MetricReporter<Vec<u8>> {
         Self {
             buffer: self.buffer.clone(),
             out: self.out.clone(),
-            utc_now: self.utc_now.clone(),
+            utc_now: self.utc_now,
             service_name: self.service_name.clone(),
         }
     }
@@ -202,7 +202,7 @@ impl Clone for MetricReporter<Stdout> {
         Self {
             buffer: self.buffer.clone(),
             out: self.out.clone(),
-            utc_now: self.utc_now.clone(),
+            utc_now: self.utc_now,
             service_name: self.service_name.clone(),
         }
     }
@@ -269,7 +269,7 @@ mod tests {
             .with_timezone(&Utc)
     }
 
-    const SERVICE_NAME: &'static str = "test_service";
+    const SERVICE_NAME: &str = "test_service";
 
     #[test]
     fn test_public_functions_smoke_test() -> Result<(), Box<dyn std::error::Error>> {
@@ -293,7 +293,7 @@ mod tests {
             "MONITORING|test_service|2020-01-01T01:23:45.000Z|metric_name:123.45|c|@0.75",
             "MONITORING|test_service|2020-01-01T01:23:45.000Z|metric_name:123.45|g|#key:value",
         ];
-        let actual: Vec<&str> = written.split("\n").collect();
+        let actual: Vec<&str> = written.split('\n').collect();
         for (expected, actual) in expected.iter().zip(actual.iter()) {
             assert_eq!(expected, actual)
         }

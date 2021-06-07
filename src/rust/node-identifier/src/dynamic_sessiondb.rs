@@ -85,7 +85,7 @@ where
 
         match item {
             Some(item) => {
-                let mapping: ResolvedMapping = serde_dynamodb::from_hashmap(item.clone())?;
+                let mapping: ResolvedMapping = serde_dynamodb::from_hashmap(item)?;
                 Ok(Some(mapping.mapping))
             }
             None => Ok(None),
@@ -207,7 +207,6 @@ where
 
         let created_time = strategy.create_time;
         let last_seen_time = strategy.last_seen_time;
-
         let unid = match (created_time != 0, last_seen_time != 0) {
             (true, _) => UnidSession {
                 pseudo_key: primary_key,

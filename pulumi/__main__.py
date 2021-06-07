@@ -12,8 +12,13 @@ from infra.cache import Cache
 from infra.config import DEPLOYMENT_NAME, LOCAL_GRAPL
 from infra.dgraph_cluster import DgraphCluster, LocalStandInDgraphCluster
 from infra.dgraph_ttl import DGraphTTL
+from infra.dynamodb import DynamoDB
 from infra.engagement_creator import EngagementCreator
 from infra.graph_merger import GraphMerger
+from infra.graph_mutation_cluster import (
+    GraphMutationCluster,
+    LocalStandInGraphMutationCluster,
+)
 from infra.metric_forwarder import MetricForwarder
 from infra.network import Network
 from infra.node_identifier import NodeIdentifier
@@ -29,7 +34,17 @@ def _create_dgraph_cluster(network: Network) -> DgraphCluster:
     else:
         return DgraphCluster(
             name=f"{DEPLOYMENT_NAME}-dgraph",
+            vpc=network,
+        )
+
+
+def _create_grpc_cluster(network: Network, db: DynamoDB) -> GraphMutationCluster:
+    if LOCAL_GRAPL:
+        return LocalStandInGraphMutationCluster()
+    else:
+        return GraphMutationCluster(
             vpc=network.vpc,
+            db=db,
         )
 
 
@@ -47,14 +62,20 @@ def main() -> None:
     register_auto_tags({"grapl deployment": DEPLOYMENT_NAME})
 
     network = Network("grapl-network")
+    dynamodb_tables = dynamodb.DynamoDB()
 
     dgraph_cluster: DgraphCluster = _create_dgraph_cluster(network=network)
+    graph_mutation_service_cluster: GraphMutationCluster = _create_grpc_cluster(
+        network=network, db=dynamodb_tables
+    )
+
+    dgraph_cluster.allow_connections_from(
+        graph_mutation_service_cluster.swarm.security_group
+    )
 
     DGraphTTL(network=network, dgraph_cluster=dgraph_cluster)
 
     secret = JWTSecret()
-
-    dynamodb_tables = dynamodb.DynamoDB()
 
     forwarder = MetricForwarder(network=network)
 
@@ -132,7 +153,7 @@ def main() -> None:
             input_emitter=subgraphs_generated_emitter,
             output_emitter=subgraphs_merged_emitter,
             dgraph_cluster=dgraph_cluster,
-            db=dynamodb_tables,
+            graph_mutation_service_cluster=graph_mutation_service_cluster,
             network=network,
             cache=cache,
             forwarder=forwarder,
@@ -192,7 +213,9 @@ def main() -> None:
         # another means of doing this. We should harmonize this, of
         # course.
         ENGAGEMENT_VIEW_DIR = Path("../src/js/engagement_view/build").resolve()
-        ux_bucket.upload_to_bucket(ENGAGEMENT_VIEW_DIR)
+        ux_bucket.upload_to_bucket(
+            ENGAGEMENT_VIEW_DIR, preserve_path=ENGAGEMENT_VIEW_DIR
+        )
 
     Api(
         network=network,

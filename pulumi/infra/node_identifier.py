@@ -1,4 +1,5 @@
 from infra import dynamodb
+from infra.bucket import Bucket
 from infra.cache import Cache
 from infra.config import configurable_envvars
 from infra.dynamodb import DynamoDB
@@ -6,6 +7,7 @@ from infra.emitter import EventEmitter
 from infra.fargate_service import FargateService, GraplDockerBuild
 from infra.metric_forwarder import MetricForwarder
 from infra.network import Network
+from infra.ec2 import Ec2Port
 
 
 class NodeIdentifier(FargateService):
@@ -79,3 +81,4 @@ class NodeIdentifier(FargateService):
         )
 
         self.allow_egress_to_cache(cache)
+        Ec2Port("tcp", 443).allow_outbound_any_ip(self.default_service.security_group)
