@@ -147,3 +147,13 @@ FROM rust-dist AS osquery-subgraph-generator-deploy
 
 COPY --from=build /dist/osquery-subgraph-generator /
 CMD ["/osquery-subgraph-generator"]
+
+
+# web-ui
+FROM rust-dist AS web-ui-deploy
+
+COPY --from=build /dist/web-ui /
+CMD ["/web-ui"]
+
+
+
