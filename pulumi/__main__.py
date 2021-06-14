@@ -131,8 +131,6 @@ def main() -> None:
         )
 
         WebUi(
-            input_emitter=unid_subgraphs_generated_emitter,
-            output_emitter=subgraphs_generated_emitter,
             network=network,
             cache=cache,
             forwarder=forwarder,

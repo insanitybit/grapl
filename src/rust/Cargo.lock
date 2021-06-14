@@ -1495,6 +1495,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "grapl-fe-mock-service"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "env_logger 0.6.2",
+ "http 0.1.21",
+ "reqwest",
+ "serde",
+ "thiserror",
+ "tracing",
+ "tracing-actix-web",
+]
+
+[[package]]
 name = "grapl-graph-descriptions"
 version = "0.2.10"
 dependencies = [

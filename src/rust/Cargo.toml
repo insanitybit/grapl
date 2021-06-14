@@ -21,4 +21,5 @@ members = [
     "./grapl-service",
     "./grapl-web-ui",   
     "./grapl-graphql-codegen",
+    "./grapl-fe-mock-service",
 ]

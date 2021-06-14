@@ -155,5 +155,10 @@ FROM rust-dist AS web-ui-deploy
 COPY --from=build /dist/web-ui /
 CMD ["/web-ui"]
 
+# web-ui
+FROM rust-dist AS fe-mock-service-deploy
+
+COPY --from=build /dist/fe-mock-service /
+CMD ["/fe-mock-service"]
 
 

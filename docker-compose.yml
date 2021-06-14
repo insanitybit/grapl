@@ -295,6 +295,17 @@ services:
       localstack:
         condition: service_healthy
 
+  grapl-fe-mock-service:
+    image: grapl/grapl-fe-mock-service:${TAG:-latest}
+    environment:
+      <<: *aws-region
+      IS_LOCAL: "true"
+      <<: *log-level
+      <<: *s3-env
+      <<: *rust-backtrace
+    depends_on:
+      localstack:
+        condition: service_healthy
   ########################################################################
   # Python Services
   ########################################################################
