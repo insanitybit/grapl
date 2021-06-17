@@ -2038,7 +2038,6 @@ dependencies = [
  "grapl-utils",
  "hex",
  "hmap",
- "log",
  "prost",
  "quickcheck",
  "quickcheck_macros",
