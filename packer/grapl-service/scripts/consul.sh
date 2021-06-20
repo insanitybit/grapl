@@ -32,7 +32,7 @@ function install_files() {
 	done
 }
 
-consul_home=~consul
+consul_home=/var/lib/consul/
 
 install_files <<END
 consul            /usr/bin/consul                     755  root    root

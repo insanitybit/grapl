@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import Optional, Literal, Union, List, Sequence
+from typing import Optional, Literal, Union, List, Sequence, Dict
 
 import pulumi
 
@@ -25,6 +25,7 @@ class Ec2Cluster(pulumi.ComponentResource):
             instance_type: str,
             iam_instance_profile: aws.iam.InstanceProfile,
             vpc_security_group_ids: Sequence[Output[str]],
+            instance_tags: Dict[str, str],
             opts: Optional[pulumi.ResourceOptions] = None,
     ) -> None:
         super().__init__("grapl:Ec2ClusterResource", name=name, props=None, opts=opts)
@@ -41,6 +42,7 @@ class Ec2Cluster(pulumi.ComponentResource):
                     quorum_size,
                     iam_instance_profile,
                     vpc_security_group_ids,
+                    instance_tags,
                     child_opts,
                 )
             )
@@ -59,6 +61,7 @@ class Ec2Cluster(pulumi.ComponentResource):
             quorum_size: QuorumSize,
             iam_instance_profile: aws.iam.InstanceProfile,
             vpc_security_group_ids: Sequence[Output[str]],
+            instance_tags: Dict[str, str],
             child_opts,
     ) -> List[aws.ec2.Instance]:
         instances = []
@@ -69,10 +72,12 @@ class Ec2Cluster(pulumi.ComponentResource):
         _subnets = vpc.private_subnets
         subnets = itertools.cycle(_subnets)
         for i in range(0, quorum_size):
+            print(f'name: {name}-{i}')
             subnet = next(subnets)
             network_interface = aws.ec2.NetworkInterface(
                 f'ec2-eni-{name}-{i}',
                 subnet_id=subnet.id,
+                security_groups=vpc_security_group_ids,
                 tags={
                     "Name": "primary_network_interface",
                 },
@@ -91,11 +96,13 @@ class Ec2Cluster(pulumi.ComponentResource):
                 credit_specification=aws.ec2.InstanceCreditSpecificationArgs(
                     cpu_credits="unlimited",
                 ),
+                tags=instance_tags,
                 iam_instance_profile=iam_instance_profile.name,
-                vpc_security_group_ids=vpc_security_group_ids,
-                # metadata_options=aws.ec2.InstanceMetadataOptions(  # Consul relies on EC2 metadata
-                #     # http_tokens=True  # Can we at least use v2? Should verify.
-                # ),
+                # vpc_security_group_ids=vpc_security_group_ids,
+                metadata_options=aws.ec2.InstanceMetadataOptionsArgs(  # Consul relies on EC2 metadata
+                    http_endpoint='enabled',
+                    http_tokens='optional'  # Can we at least use v2? Should verify.
+                ),
                 opts=child_opts
             )
 

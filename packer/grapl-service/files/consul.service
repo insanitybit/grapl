@@ -5,7 +5,7 @@ Description=Hashicorp's Consul
 Type=simple
 WorkingDirectory=/var/lib/consul
 User=consul
-Group=nogroup
+Group=nfsnobody
 ExecStart=/usr/bin/consul agent -config-dir /var/lib/consul/
 Restart=on-failure
 

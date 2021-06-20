@@ -10,6 +10,7 @@ from infra.ec2 import Ec2Port
 from infra.ec2_cluster import Ec2Cluster
 from infra.network import Network
 from infra import policies
+from infra.policies import EC2_DESCRIBE_INSTANCES_POLICY
 
 
 class NomadServer(pulumi.ComponentResource):
@@ -33,7 +34,6 @@ class NomadServer(pulumi.ComponentResource):
             f"{name}-sec-group",
             description=f"Nomad server security group",
             vpc_id=vpc.id,
-            tags={"nomad-server-sec-group-for-deployment": DEPLOYMENT_NAME},
             opts=child_opts,
         )
 
@@ -74,15 +74,21 @@ class NomadServer(pulumi.ComponentResource):
         )
         policies.attach_policy(role=self.role, policy=policies.SSM_POLICY)
 
+        policies.attach_policy(role=self.role, policy=EC2_DESCRIBE_INSTANCES_POLICY)
+
         nomad_servers = Ec2Cluster(
             'nomad-servers',
             network,
             3,
             1,
-            'ami-0acbc1b79580700e8',
+            'ami-07f6731872be3da5f',
             't2.micro',
             instance_profile,
             [self.security_group.id],
+            instance_tags={
+                "nomad-server-sec-group-for-deployment": DEPLOYMENT_NAME,
+                "ConsulAgent": "Server"
+            },
             opts=child_opts,
         )
 
@@ -90,11 +96,22 @@ class NomadServer(pulumi.ComponentResource):
         # allow hosts in the nomad-server security group to communicate
         # internally on the following ports:
         # https://www.nomadproject.io/docs/install/production/requirements#ports-used
+        # https://www.consul.io/docs/install/ports
         for port in (
+                # Nomad ports
                 Ec2Port("tcp", 4646),
                 Ec2Port("tcp", 4647),
                 Ec2Port("tcp", 4648),
                 Ec2Port("udp", 4648),
+                # Consul ports
+                Ec2Port("tcp", 8300),
+                Ec2Port("tcp", 8301),
+                Ec2Port("udp", 8301),
+                Ec2Port("tcp", 8302),
+                Ec2Port("udp", 8302),
+                Ec2Port("tcp", 8500),
+                Ec2Port("udp", 8600),
+                Ec2Port("tcp", 8600),
                 *internal_service_ports,
         ):
             port.allow_internally(self.security_group)

@@ -57,11 +57,11 @@ def main() -> None:
     register_auto_tags({"grapl deployment": DEPLOYMENT_NAME})
 
     network = Network("grapl-network")
-    nomad_server_cluster = NomadServer(
-        'nomad-server',
-        network,
-        (),
-    )
+    # nomad_server_cluster = NomadServer(
+    #     'nomad-server',
+    #     network,
+    #     (),
+    # )
     # dgraph_cluster: DgraphCluster = _create_dgraph_cluster(network=network)
     #
     # DGraphTTL(network=network, dgraph_cluster=dgraph_cluster)

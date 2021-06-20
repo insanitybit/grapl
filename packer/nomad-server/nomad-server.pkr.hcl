@@ -66,13 +66,13 @@ source "amazon-ebs" "nomad-server-image" {
 
   vpc_filter {
     filters = {
-      vpc-id = "vpc-0f247216c2c1660d3",
+      vpc-id = "vpc-088c882aa7163f80d",
     }
   }
 
   subnet_filter {
     filters = {
-      subnet-id = "subnet-00472e84af8d73831"
+      subnet-id = "subnet-0dcb374e5437f760c"
     }
   }
 

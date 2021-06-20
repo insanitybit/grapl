@@ -11,6 +11,12 @@ sudo adduser \
 	nomad
 
 mkdir -p /var/lib/nomad/
+mkdir -p /var/lib/nomad/log/
+
+sudo chown -R "nomad:nfsnobody" "/var/lib/nomad/"
+echo 1 > sudo tee /proc/sys/net/bridge/bridge-nf-call-arptables
+echo 1 > sudo tee /proc/sys/net/bridge/bridge-nf-call-ip6tables
+echo 1 > sudo tee /proc/sys/net/bridge/bridge-nf-call-iptables
 
 nomad_home=~nomad
 

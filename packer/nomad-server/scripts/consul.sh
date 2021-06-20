@@ -11,6 +11,9 @@ sudo adduser \
 	consul
 
 mkdir -p /var/lib/consul/
+mkdir -p /var/lib/consul/log/
+
+sudo chown -R "consul:nfsnobody" "/var/lib/consul/"
 
 function install_file() {
 	source_basename="$1"
