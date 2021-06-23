@@ -26,16 +26,15 @@ pub enum AuthError {
     InvalidCreds,
 }
 
+struct LoginResp{
+    message: String,
+}
+
 #[get("/login")]
-pub async fn grapl_login(body: actix_web::web::Json<LoginBody>) -> impl Responder {
-    let body = body.into_inner();
-    let response = login_request_with_body("login", body).await;
-
-    match response {
-        Ok(response) => HttpResponse::Ok().json(response),
-
-        Err(AuthError::InvalidCreds) => HttpResponse::Forbidden().finish(),
-
-        Err(AuthError::RequestError(_)) => HttpResponse::InternalServerError().finish(),
-    }
+pub async fn grapl_login(_req: actix_web::web::Json<LoginBody>) -> impl Responder {
+    HttpResponse::Ok().json(
+        LoginResp{
+            message: String::from("success"),
+        }
+    )
 }

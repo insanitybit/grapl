@@ -1,183 +1,69 @@
+use serde::{
+    Serialize, Deserialize,
+};
+
+use serde_json::Value;
+
+use std::collections::HashMap;
+use serde_json::json;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Node {
-    name: i32,
-    uid: i32,
+    uid: u64,
     node_key: String,
-    dgraph_type:vec<String>,
+    dgraph_type: Vec<String>,
     display: String,
-    hostname: String,
-    risk_score: i32,
-    analyzerNames: String,
-    id: i32,
-    nodeType: String,
-    nodeLabel: String,
-}
-
-pub struct Link {
-    source: i32,
-    name: String,
-    target: i32,
+    #[serde(flatten)]
+    node_edges_and_props: HashMap<String, Value>,
 }
 
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Data {
+    lens_scope: LensScope,
+}
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GraphQLLensScopeResp {
+    data: Data,
 
-pub struct VizGraphReturnData {
-    nodes: vec![
-    node {
-        name: 40,
-        uid: 40,
-        node_key: "53e2abc7-ce21-4be0-b70a-4c835eefecd1",
-        dgraph_type: ["Asset"],
-        display: "Asset",
-        hostname: "DESKTOP-FVSHABR",
-        risk_score: 85,
-        analyzerNames: "Rare Parent of cmd.exe, Suspicious svchost",
-        id: 40,
-        nodeType: "Asset",
-        nodeLabel: "Asset",
-    },
-    node {
-        name: 171,
-        uid: 171,
-        node_key: "9388ceda-91fc-49c8-989c-8968ad93d0e8",
-        dgraph_type: ["Process"],
-        process_name: "dropper.exe",
-        process_id: 4164,
-        display: "Process",
-        risk_score: 10,
-        analyzerNames: "Rare Parent of cmd.exe",
-        id: 171,
-        nodeType: "Process",
-        nodeLabel: "Process",
-    },
-    node {
-        name: 193,
-        uid: 193,
-        node_key: "a9ca278c-0f52-4e89-821c-876d750ad1dd",
-        dgraph_type: ["Process"],
-        process_name: "cmd.exe",
-        process_id: 5824,
-        display: "Process",
-        risk_score: 75,
-        analyzerNames: "Suspicious svchost",
-        id: 193,
-        nodeType: "Process",
-        nodeLabel: "Process",
-    },
-    node {
-        name: 201,
-        uid: 201,
-        node_key: "a0c5dacc-fd53-450f-bb99-207467b9c7ee",
-        dgraph_type: ["Process"],
-        process_name: "cmd.exe",
-        process_id: 5824,
-        display: "Process",
-        children: null,
-        risk_score: 10,
-        analyzerNames: "Rare Parent of cmd.exe",
-        id: 201,
-        nodeType: "Process",
-        nodeLabel: "Process",
-    },
-    node {
-        name: 207,
-        uid: 207,
-        node_key: "739c609a-05ac-4bed-949c-387efb06114a",
-        dgraph_type: ["Process"],
-        process_name: "svchost.exe",
-        process_id: 6132,
-        display: "Process",
-        risk_score: 0,
-        analyzerNames: "",
-        id: 207,
-        nodeType: "Process",
-        nodeLabel: "Process",
-    },
-    ],
-    links: vec![
-        link { source: 40, name: "asset_processes", target: 171 },
-        link { source: 40, name: "asset_processes", target: 193 },
-        link { source: 40, name: "asset_processes", target: 201 },
-        link { source: 40, name: "asset_processes", target: 207 },
-        link { source: 171, name: "children", target: 201 },
-        link { source: 193, name: "children", target: 207 },
-    ],
-    index: {
-        "40": {
-            name: 40,
-            uid: 40,
-            node_key: "53e2abc7-ce21-4be0-b70a-4c835eefecd1",
-            dgraph_type: ["Asset"],
-            display: "Asset",
-            hostname: "DESKTOP-FVSHABR",
-            asset_ip: null,
-            files_on_asset: null,
-            risk_score: 85,
-            analyzerNames: "Rare Parent of cmd.exe, Suspicious svchost",
-            id: 40,
-            nodeType: "Asset",
-            nodeLabel: "Asset",
-        },
-        "171": {
-            name: 171,
-            uid: 171,
-            node_key: "9388ceda-91fc-49c8-989c-8968ad93d0e8",
-            dgraph_type: ["Process"],
-            process_name: "dropper.exe",
-            process_id: 4164,
-            display: "Process",
-            risk_score: 10,
-            analyzerNames: "Rare Parent of cmd.exe",
-            id: 171,
-            nodeType: "Process",
-            nodeLabel: "Process",
-        },
-        "193": {
-            name: 193,
-            uid: 193,
-            node_key: "a9ca278c-0f52-4e89-821c-876d750ad1dd",
-            dgraph_type: ["Process"],
-            process_name: "cmd.exe",
-            process_id: 5824,
-            display: "Process",
-            risk_score: 75,
-            analyzerNames: "Suspicious svchost",
-            id: 193,
-            nodeType: "Process",
-            nodeLabel: "Process",
-        },
-        "201": {
-            name: 201,
-            uid: 201,
-            node_key: "a0c5dacc-fd53-450f-bb99-207467b9c7ee",
-            dgraph_type: ["Process"],
-            process_name: "cmd.exe",
-            process_id: 5824,
-            display: "Process",
-            children: null,
-            risk_score: 10,
-            analyzerNames: "Rare Parent of cmd.exe",
-            id: 201,
-            nodeType: "Process",
-            nodeLabel: "Process",
-        },
-        "207": {
-            name: 207,
-            uid: 207,
-            node_key: "739c609a-05ac-4bed-949c-387efb06114a",
-            dgraph_type: ["Process"],
-            process_name: "svchost.exe",
-            process_id: 6132,
-            display: "Process",
-            children: null,
-            risks: null,
-            risk_score: 0,
-            analyzerNames: "",
-            id: 207,
-            nodeType: "Process",
-            nodeLabel: "Process",
-        },
-    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LensScope {
+    lens_name: String,
+    nodes: Vec<Node>,
 }
 
 
+pub fn example_lens_scope() -> LensScope {
+    let raw = json!({
+        "lens_name": "ExampleLens",
+        "nodes": [
+            {
+                "uid": 100,
+                "node_key": "TestNode1",
+                "dgraph_type": ["File"],
+                "display": "TestFile1",
+                "file_path": "src/python",
+                "created_by": {
+                    "uid": 200,
+                    "node_key": "TestNode2",
+                    "dgraph_type": ["Process"],
+                    "display": "TestProcess",
+                    "process_name": "evil.exe",
+                }
+            }
+        ]
+    });
+    serde_json::from_value(raw).unwrap()
+}
+
+
+pub fn example_graphql_lens_scope_resp() -> GraphQLLensScopeResp {
+    GraphQLLensScopeResp{
+        data: Data{
+            lens_scope: example_lens_scope()
+        }
+    }
+}

@@ -1503,6 +1503,7 @@ dependencies = [
  "http 0.1.21",
  "reqwest",
  "serde",
+ "serde_json",
  "thiserror",
  "tracing",
  "tracing-actix-web",
