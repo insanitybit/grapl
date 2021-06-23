@@ -9,13 +9,20 @@ use serde::{
     Serialize,
 };
 
-use crate::login_request_with_body;
+// use crate::login_request_with_body;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginBody {
     username: String,
     password: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct LoginResp{
+    message: String,
+    jwt: String
+}
+
 
 #[derive(thiserror::Error, Debug)]
 pub enum AuthError {
@@ -27,15 +34,9 @@ pub enum AuthError {
 }
 
 #[get("/login")]
-pub async fn grapl_login(body: actix_web::web::Json<LoginBody>) -> impl Responder {
-    let body = body.into_inner();
-    let response = login_request_with_body("login", body).await;
-
-    match response {
-        Ok(response) => HttpResponse::Ok().json(response),
-
-        Err(AuthError::InvalidCreds) => HttpResponse::Forbidden().finish(),
-
-        Err(AuthError::RequestError(_)) => HttpResponse::InternalServerError().finish(),
-    }
+pub async fn grapl_login() -> impl Responder {
+    HttpResponse::Ok().json(LoginResp{
+        message: String::from("success"),
+        jwt: String::from("CiAjmNcv20")
+    })
 }
