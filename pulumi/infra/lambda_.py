@@ -19,7 +19,7 @@ import pulumi
 def code_path_for(lambda_fn: str) -> str:
     """Given the name of a lambda, return the local path of the ZIP archive for that lambda.
 
-    Looks in "<REPOSITORY_ROOT>/src/js/grapl-cdk/zips" currently, but
+    Looks in "<REPOSITORY_ROOT>/src/aws-provision/zips" currently, but
     this can be overridden by setting the `GRAPL_LAMBDA_ZIP_DIR`
     environment variable to an appropriate directory.
 
@@ -27,7 +27,7 @@ def code_path_for(lambda_fn: str) -> str:
     put together the appropriate file name.
 
     """
-    root_dir = os.getenv("GRAPL_LAMBDA_ZIP_DIR", "../src/js/grapl-cdk/zips")
+    root_dir = os.getenv("GRAPL_LAMBDA_ZIP_DIR", "../src/aws-provision/zips")
     return f"{root_dir}/{lambda_fn}-{GLOBAL_LAMBDA_ZIP_TAG}.zip"
 
 
@@ -178,10 +178,13 @@ class Lambda(pulumi.ComponentResource):
             )
 
         # Lambda function output is automatically sent to log
-        # groups named like this; we create one explicitly so we can
+        # groups named like this; we denote this one explicitly so we can
         # specify retention rules.
         self.log_group = aws.cloudwatch.LogGroup(
             f"{name}-log-group",
+            # Don't change - or rather, if you decide to,
+            # follow these instructions:
+            # https://www.pulumi.com/docs/reference/pkg/aws/lambda/function/#cloudwatch-logging-and-permissions
             name=f"/aws/lambda/{lambda_name}",
             retention_in_days=SERVICE_LOG_RETENTION_DAYS,
             opts=pulumi.ResourceOptions(parent=self),

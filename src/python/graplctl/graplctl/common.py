@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import dataclasses
-import logging
-import os
-import sys
 import time
 from typing import TYPE_CHECKING, Dict, Iterator, List, Tuple
 
 import click
+from grapl_common.grapl_logger import get_module_grapl_logger
 
 if TYPE_CHECKING:
     import mypy_boto3_ec2.service_resource as ec2_resources
     from mypy_boto3_cloudwatch.client import CloudWatchClient
+    from mypy_boto3_dynamodb import DynamoDBServiceResource
     from mypy_boto3_ec2 import EC2ServiceResource
     from mypy_boto3_ec2.type_defs import TagTypeDef
     from mypy_boto3_lambda import LambdaClient
@@ -22,9 +21,7 @@ if TYPE_CHECKING:
     from mypy_boto3_ssm.client import SSMClient
     from mypy_boto3_ssm.type_defs import GetCommandInvocationResultTypeDef
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(os.getenv("GRAPL_LOG_LEVEL", "INFO"))
-LOGGER.addHandler(logging.StreamHandler(stream=sys.stdout))
+LOGGER = get_module_grapl_logger(log_to_stdout=True)
 
 IN_PROGRESS_STATUSES = {
     "Pending",
@@ -45,14 +42,16 @@ class State:
     grapl_deployment_name: str
     grapl_version: str
     aws_profile: str
-    ec2: EC2ServiceResource
-    ssm: SSMClient
+
     cloudwatch: CloudWatchClient
+    dynamodb: DynamoDBServiceResource
+    ec2: EC2ServiceResource
+    lambda_: LambdaClient
+    route53: Route53Client
     s3: S3Client
     sns: SNSClient
-    route53: Route53Client
     sqs: SQSClient
-    lambda_: LambdaClient
+    ssm: SSMClient
 
 
 # Prefer this to `pass_obj`
@@ -115,7 +114,6 @@ def get_command_results(
             command_id=command_id,
             instance_id=instance_id,
         )
-
         if invocation["Status"] == "Success":
             yield instance_id, invocation["StandardOutputContent"].strip()
         else:

@@ -6,7 +6,8 @@ from infra.dgraph_cluster import DgraphCluster
 from infra.dynamodb import DynamoDB
 from infra.lambda_ import Lambda, LambdaExecutionRole, PythonLambdaArgs, code_path_for
 from infra.network import Network
-from infra.secret import JWTSecret
+from infra.secret import TestUserPassword
+from infra.swarm import Ec2Port
 
 import pulumi
 
@@ -15,7 +16,7 @@ class Provisioner(pulumi.ComponentResource):
     def __init__(
         self,
         network: Network,
-        secret: JWTSecret,
+        test_user_password: TestUserPassword,
         db: DynamoDB,
         dgraph_cluster: DgraphCluster,
         opts: Optional[pulumi.ResourceOptions] = None,
@@ -33,26 +34,28 @@ class Provisioner(pulumi.ComponentResource):
                 description=GLOBAL_LAMBDA_ZIP_TAG,
                 code_path=code_path_for(name),
                 env={
-                    # TODO: this is mostly copy pasted, figure out what we actually need
                     "GRAPL_LOG_LEVEL": "DEBUG",
                     "DEPLOYMENT_NAME": DEPLOYMENT_NAME,
                     "MG_ALPHAS": dgraph_cluster.alpha_host_port,
                     "GRAPL_TEST_USER_NAME": f"{DEPLOYMENT_NAME}-grapl-test-user",
                 },
-                timeout=600,
+                timeout=60 * 15,  # 15 minutes
                 memory_size=256,
                 execution_role=self.role,
             ),
             network=network,
-            # graplctl currently expects a very specific function name.
-            # in the future we should just have it pull from pulumi outputs.
-            override_name=f"{DEPLOYMENT_NAME}-Provisioner-Handler",
+            # graplctl expects this specific function name :(
+            override_name=f"{DEPLOYMENT_NAME}-provisioner",
             opts=pulumi.ResourceOptions(parent=self),
         )
 
-        secret.grant_read_permissions_to(self.role)
+        Ec2Port("tcp", 443).allow_outbound_any_ip(self.function.security_group)
 
-        dynamodb.grant_read_on_tables(self.role, [db.user_auth_table])
+        test_user_password.grant_read_permissions_to(self.role)
+
+        dynamodb.grant_read_write_on_tables(
+            self.role, [db.user_auth_table, db.schema_table, db.schema_properties_table]
+        )
 
         dgraph_cluster.allow_connections_from(self.function.security_group)
 

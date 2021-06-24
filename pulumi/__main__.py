@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import List
 
 from infra import dynamodb, emitter
 from infra.alarms import OpsAlarms
@@ -12,14 +13,20 @@ from infra.cache import Cache
 from infra.config import DEPLOYMENT_NAME, LOCAL_GRAPL
 from infra.dgraph_cluster import DgraphCluster, LocalStandInDgraphCluster
 from infra.dgraph_ttl import DGraphTTL
+from infra.e2e_test_runner import E2eTestRunner
 from infra.engagement_creator import EngagementCreator
 from infra.graph_merger import GraphMerger
+from infra.kafka import Kafka
 from infra.metric_forwarder import MetricForwarder
 from infra.network import Network
 from infra.node_identifier import NodeIdentifier
 from infra.osquery_generator import OSQueryGenerator
+from infra.pipeline_dashboard import PipelineDashboard
 from infra.provision_lambda import Provisioner
-from infra.secret import JWTSecret
+from infra.quiet_docker_build_output import quiet_docker_output
+from infra.secret import JWTSecret, TestUserPassword
+from infra.service import ServiceLike
+from infra.service_queue import ServiceQueue  # noqa: F401
 from infra.sysmon_generator import SysmonGenerator
 from infra.web_ui import WebUi
 
@@ -43,6 +50,8 @@ def main() -> None:
         if not os.getenv("DOCKER_BUILDKIT"):
             raise KeyError("Please re-run with 'DOCKER_BUILDKIT=1'")
 
+    quiet_docker_output()
+
     # These tags will be added to all provisioned infrastructure
     # objects.
     register_auto_tags({"grapl deployment": DEPLOYMENT_NAME})
@@ -53,7 +62,9 @@ def main() -> None:
 
     DGraphTTL(network=network, dgraph_cluster=dgraph_cluster)
 
-    secret = JWTSecret()
+    jwt_secret = JWTSecret()
+
+    test_user_password = TestUserPassword()
 
     dynamodb_tables = dynamodb.DynamoDB()
 
@@ -73,6 +84,8 @@ def main() -> None:
     # TODO: No _infrastructure_ currently *writes* to this bucket
     analyzers_bucket = Bucket("analyzers-bucket", sse=True)
     model_plugins_bucket = Bucket("model-plugins-bucket", sse=False)
+
+    services: List[ServiceLike] = []
 
     if LOCAL_GRAPL:
         # We need to create these queues, and wire them up to their
@@ -101,11 +114,13 @@ def main() -> None:
         analyzer_executor_queue = ServiceQueue("analyzer-executor")
         analyzer_executor_queue.subscribe_to_emitter(dispatched_analyzer_emitter)
 
+        kafka = Kafka("kafka")
+
     else:
         # No Fargate or Elasticache in Local Grapl
         cache = Cache("main-cache", network=network)
 
-        SysmonGenerator(
+        sysmon_generator = SysmonGenerator(
             input_emitter=sysmon_log_emitter,
             output_emitter=unid_subgraphs_generated_emitter,
             network=network,
@@ -113,7 +128,7 @@ def main() -> None:
             forwarder=forwarder,
         )
 
-        OSQueryGenerator(
+        osquery_generator = OSQueryGenerator(
             input_emitter=osquery_log_emitter,
             output_emitter=unid_subgraphs_generated_emitter,
             network=network,
@@ -121,7 +136,7 @@ def main() -> None:
             forwarder=forwarder,
         )
 
-        NodeIdentifier(
+        node_identifier = NodeIdentifier(
             input_emitter=unid_subgraphs_generated_emitter,
             output_emitter=subgraphs_generated_emitter,
             db=dynamodb_tables,
@@ -130,13 +145,14 @@ def main() -> None:
             forwarder=forwarder,
         )
 
+
         WebUi(
             network=network,
             cache=cache,
             forwarder=forwarder,
         )
 
-        GraphMerger(
+        graph_merger = GraphMerger(
             input_emitter=subgraphs_generated_emitter,
             output_emitter=subgraphs_merged_emitter,
             dgraph_cluster=dgraph_cluster,
@@ -146,7 +162,7 @@ def main() -> None:
             forwarder=forwarder,
         )
 
-        AnalyzerDispatcher(
+        analyzer_dispatcher = AnalyzerDispatcher(
             input_emitter=subgraphs_merged_emitter,
             output_emitter=dispatched_analyzer_emitter,
             analyzers_bucket=analyzers_bucket,
@@ -155,7 +171,7 @@ def main() -> None:
             forwarder=forwarder,
         )
 
-        AnalyzerExecutor(
+        analyzer_executor = AnalyzerExecutor(
             input_emitter=dispatched_analyzer_emitter,
             output_emitter=analyzer_matched_emitter,
             dgraph_cluster=dgraph_cluster,
@@ -166,21 +182,28 @@ def main() -> None:
             forwarder=forwarder,
         )
 
-    EngagementCreator(
+        services.extend(
+            [
+                sysmon_generator,
+                osquery_generator,
+                node_identifier,
+                graph_merger,
+                analyzer_dispatcher,
+                analyzer_executor,
+            ]
+        )
+
+    engagement_creator = EngagementCreator(
         input_emitter=analyzer_matched_emitter,
         network=network,
         forwarder=forwarder,
         dgraph_cluster=dgraph_cluster,
     )
-
-    Provisioner(
-        network=network,
-        secret=secret,
-        db=dynamodb_tables,
-        dgraph_cluster=dgraph_cluster,
-    )
+    services.append(engagement_creator)
 
     OpsAlarms(name="ops-alarms")
+
+    PipelineDashboard(services=services)
 
     ########################################################################
 
@@ -193,6 +216,16 @@ def main() -> None:
         website_args=aws.s3.BucketWebsiteArgs(
             index_document="index.html",
         ),
+    )
+
+    api = Api(
+        network=network,
+        secret=jwt_secret,
+        ux_bucket=ux_bucket,
+        db=dynamodb_tables,
+        plugins_bucket=model_plugins_bucket,
+        forwarder=forwarder,
+        dgraph_cluster=dgraph_cluster,
     )
     # Note: This requires `yarn build` to have been run first
     if not LOCAL_GRAPL:
@@ -207,23 +240,19 @@ def main() -> None:
         except FileNotFoundError as e:
             raise Exception("You probably need to `make pulumi-prep` first") from e
 
-    Api(
-        network=network,
-        secret=secret,
-        ux_bucket=ux_bucket,
-        db=dynamodb_tables,
-        plugins_bucket=model_plugins_bucket,
-        forwarder=forwarder,
-        dgraph_cluster=dgraph_cluster,
-    )
+        Provisioner(
+            network=network,
+            test_user_password=test_user_password,
+            db=dynamodb_tables,
+            dgraph_cluster=dgraph_cluster,
+        )
 
-    ########################################################################
-
-    if LOCAL_GRAPL:
-        from infra.local import user
-
-        user.local_grapl_user(
-            dynamodb_tables.user_auth_table, "grapluser", "graplpassword"
+        E2eTestRunner(
+            network=network,
+            dgraph_cluster=dgraph_cluster,
+            api=api,
+            jwt_secret=jwt_secret,
+            test_user_password=test_user_password,
         )
 
 

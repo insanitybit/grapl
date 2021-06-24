@@ -49,6 +49,7 @@ new stack for this. This will be your personal stack, so make sure to
 set `PULUMI_CONFIG_PASSPHRASE` accordingly.
 
 ```
+pulumi login --local
 pulumi stack init <NAME>
 pulumi config set aws:region us-east-1
 ```
@@ -88,7 +89,7 @@ really stack-specific; they're more general.
 
 ## GRAPL_LAMBDA_ZIP_DIR
 
-Default Value: `../src/js/grapl-cdk/zips`
+Default Value: `../src/aws-provision/zips`
 
 This is the directory in which ZIP archives of our lambda functions
 are found. If overriding, an absolute path may be used. If a relative

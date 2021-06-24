@@ -1,5 +1,5 @@
 [GLOBAL]
-pants_version = "2.5.1rc0"
+pants_version = "2.5.1rc3"
 backend_packages = [
   "pants.backend.awslambda.python",
   "pants.backend.codegen.protobuf.python",
@@ -23,11 +23,10 @@ build_file_prelude_globs = [
 ]
 
 pants_ignore = [
-  "src/js/grapl-cdk/cdk.out",
 ]
 
 plugins = [
-  "toolchain.pants.plugin==0.12.0"
+  "toolchain.pants.plugin==0.13.0"
 ]
 
 remote_cache_read = true
@@ -61,12 +60,13 @@ root_patterns = [
   "/etc",  # Some of our tests use sample data from here
   "/pants-plugins",
   "/pulumi",
-  "/src/js/grapl-cdk",
+  "/src/aws-provision",
   "/src/proto",
   "/src/python/analyzer-deployer",
   "/src/python/analyzer_executor/src",
   "/src/python/analyzer_executor/tests",
   "/src/python/engagement-creator",
+  "/src/python/e2e-test-runner",
   "/src/python/engagement_edge",
   "/src/python/graphql_endpoint_tests",
   "/src/python/grapl_analyzerlib",
@@ -76,11 +76,9 @@ root_patterns = [
   "/src/python/grapl_e2e_tests",
   "/src/python/graplinc",
   "/src/python/grapl-model-plugin-deployer",
-  "/src/python/grapl_provision",
   "/src/python/grapl-tests-common",
   "/src/python/grapl-ux-router",
-  "/src/python/provisioner/src",
-  "/src/python/provisioner/tests",
+  "/src/python/provisioner",
   "/src/python/repl",
 ]
 

@@ -1,5 +1,6 @@
 import click
 import graplctl.dgraph.lib as dgraph_ops
+import graplctl.swarm.lib as docker_swarm_ops
 from graplctl.common import State, pass_graplctl_state
 from mypy_boto3_ec2.literals import InstanceTypeType
 
@@ -30,6 +31,7 @@ def dgraph(
 @pass_graplctl_state
 def create(graplctl_state: State, instance_type: InstanceTypeType) -> None:
     """spin up a swarm cluster and deploy dgraph on it"""
+    # TODO: Make idempotent
     click.echo(f"creating dgraph cluster of {instance_type} instances")
     if not dgraph_ops.create_dgraph(
         graplctl_state=graplctl_state, instance_type=instance_type
@@ -37,6 +39,7 @@ def create(graplctl_state: State, instance_type: InstanceTypeType) -> None:
         click.echo("dgraph cluster already exists")
         return
     click.echo(f"created dgraph cluster of {instance_type} instances")
+    click.echo(f"(Don't forget to `graplctl aws provision` next!)")
 
 
 @dgraph.command()
@@ -56,3 +59,25 @@ def remove_dns(graplctl_state: State, swarm_id: str) -> None:
     click.echo(f"removing dgraph dns records for swarm {swarm_id}")
     dgraph_ops.remove_dgraph_dns(graplctl_state=graplctl_state, swarm_id=swarm_id)
     click.echo(f"removed dgraph dns records for swarm {swarm_id}")
+
+
+@dgraph.command()
+@click.confirmation_option(prompt="are you quite sure?")
+@pass_graplctl_state
+def destroy(graplctl_state: State) -> None:
+    """nuke all the swarm clusters from orbit"""
+    click.echo("destroying swarm clusters")
+    for swarm_id in docker_swarm_ops.swarm_ids(
+        ec2=graplctl_state.ec2,
+        deployment_name=graplctl_state.grapl_deployment_name,
+        version=graplctl_state.grapl_version,
+        region=graplctl_state.grapl_region,
+    ):
+        click.echo(f"removing swarm dns records for swarm {swarm_id}")
+        dgraph_ops.remove_dgraph_dns(graplctl_state=graplctl_state, swarm_id=swarm_id)
+        click.echo(f"removed swarm dns records for swarm {swarm_id}")
+
+        click.echo(f"destroying swarm cluster {swarm_id}")
+        docker_swarm_ops.destroy_swarm(graplctl_state=graplctl_state, swarm_id=swarm_id)
+        click.echo(f"destroyed swarm cluster {swarm_id}")
+    click.echo("destroyed swarm cluster")

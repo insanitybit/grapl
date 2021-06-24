@@ -9,7 +9,7 @@ use serde::{
     Serialize,
 };
 
-use crate::login_request_with_body;
+// use crate::login_request_with_body;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginBody {
@@ -26,6 +26,7 @@ pub enum AuthError {
     InvalidCreds,
 }
 
+#[derive(Serialize, Deserialize)]
 struct LoginResp{
     message: String,
 }
