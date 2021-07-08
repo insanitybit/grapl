@@ -8,7 +8,7 @@ members = [
     "./generators/graph-generator-lib",
     "./generators/osquery-subgraph-generator",
     "./generators/sysmon-subgraph-generator",
-    "./graph-descriptions",
+    "./rust-proto",
     "./graph-merger",
     "./grapl",
     "./grapl-config",
@@ -19,6 +19,7 @@ members = [
     "./kafka-metrics-exporter",
     "./metric-forwarder",
     "./node-identifier",
+    "./rust-proto",
     "./sqs-executor",
     "./sysmon",
 ]
