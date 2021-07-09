@@ -39,6 +39,7 @@ from grapl_common.env_helpers import S3ResourceFactory
 from grapl_common.envelope import Envelope
 from grapl_common.grapl_logger import get_module_grapl_logger
 from grapl_common.metrics.metric_reporter import MetricReporter, TagPair
+from graplinc.grapl.api.services.v1beta1.types_pb2 import Meta
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3ServiceResource
@@ -204,7 +205,7 @@ class AnalyzerExecutor:
                     "analyzer-executor.emit_event.ms",
                     (TagPair("analyzer_name", exec_hit.analyzer_name),),
                 ):
-                    emit_event(s3, exec_hit)
+                    emit_event(s3, exec_hit, envelope.metadata)
                 self.update_msg_cache(analyzer, exec_hit.root_node_key, message["key"])
                 self.update_hit_cache(analyzer_name, exec_hit.root_node_key)
 
@@ -391,8 +392,12 @@ def chunker(seq: List[BaseView], size: int) -> List[List[BaseView]]:
     return [seq[pos : pos + size] for pos in range(0, len(seq), size)]
 
 
-def emit_event(s3: S3ServiceResource, event: ExecutionHit) -> None:
+def emit_event(s3: S3ServiceResource, event: ExecutionHit, metadata: Meta) -> None:
     LOGGER.info(f"emitting event for: {event.analyzer_name, event.nodes}")
+
+    meta_dict = {
+        "trace_id": metadata.trace_id,
+    }
 
     event_s = json.dumps(
         {
@@ -402,6 +407,7 @@ def emit_event(s3: S3ServiceResource, event: ExecutionHit) -> None:
             "risk_score": event.risk_score,
             "lenses": event.lenses,
             "risky_node_keys": event.risky_node_keys,
+            "metadata": meta_dict,
         }
     )
     event_hash = hashlib.sha256(event_s.encode())
