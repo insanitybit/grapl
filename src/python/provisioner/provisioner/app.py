@@ -7,6 +7,7 @@ from hashlib import pbkdf2_hmac, sha256
 from typing import TYPE_CHECKING, Any
 
 import boto3
+from argon2 import PasswordHasher
 from grapl_analyzerlib.prelude import (
     AssetSchema,
     FileSchema,
@@ -82,25 +83,17 @@ def _hash_password(cleartext: bytes, salt: bytes) -> str:
 
 
 def _create_user(
-    dynamodb: DynamoDBServiceResource, username: str, cleartext: str
+    dynamodb: DynamoDBServiceResource, username: str, cleartext: str, role: str
 ) -> None:
     assert cleartext
     table = dynamodb.Table(DEPLOYMENT_NAME + "-user_auth_table")
 
-    # We hash before calling 'hashed_password' because the frontend will also perform
-    # client side hashing
-    cleartext += "f1dafbdcab924862a198deaa5b6bae29aef7f2a442f841da975f1c515529d254"
+    password_hasher = PasswordHasher(time_cost=2, memory_cost=102400, parallelism=8)
+    password_hash = password_hasher.hash(cleartext)
 
-    cleartext += username
-
-    hashed = sha256(cleartext.encode("utf8")).hexdigest()
-
-    for _ in range(0, 5000):
-        hashed = sha256(hashed.encode("utf8")).hexdigest()
-
-    salt = os.urandom(16)
-    password = _hash_password(hashed.encode("utf8"), salt)
-    table.put_item(Item={"username": username, "salt": salt, "password": password})
+    table.put_item(
+        Item={"username": username, "password_hash": password_hash, "role": role}
+    )
 
 
 def _retrieve_test_user_password(
@@ -127,5 +120,10 @@ def provision(event: Any = None, context: Any = None) -> None:
     LOGGER.info("retrieved test user password")
 
     LOGGER.info("creating test user")
-    _create_user(dynamodb=dynamodb, username=GRAPL_TEST_USER_NAME, cleartext=password)
+    _create_user(
+        dynamodb=dynamodb,
+        username=GRAPL_TEST_USER_NAME,
+        cleartext=password,
+        role="owner",
+    )
     LOGGER.info("created test user")
