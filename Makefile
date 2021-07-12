@@ -283,12 +283,16 @@ lint-python: ## Run Python lint checks
 lint-shell: ## Run Shell lint checks
 	./pants filter --target-type=shell_library :: | xargs ./pants lint
 
-.PHONY: lint-js
-lint-js: build-formatter ## Run js lint checks
-	docker-compose -f docker-compose.formatter.yml up lint-js
+.PHONY: lint-prettier
+lint-prettier: build-formatter ## Run ts/js/yaml lint checks
+	docker-compose -f docker-compose.formatter.yml up lint-prettier
+
+.PHONY: lint-packer
+lint-packer: ## Check to see if Packer templates are formatted properly
+	.buildkite/scripts/lint_packer.sh
 
 .PHONY: lint
-lint: lint-python lint-js lint-rust lint-shell ## Run all lint checks
+lint: lint-python lint-prettier lint-rust lint-shell lint-packer ## Run all lint checks
 
 ##@ Formatting 💅
 
@@ -300,12 +304,16 @@ format-rust: ## Reformat all Rust code
 format-python: ## Reformat all Python code
 	./pants fmt ::
 
-.PHONY: format-js
-format-js: build-formatter ## Reformat all js/ts code
-	docker-compose -f docker-compose.formatter.yml up format-js
+.PHONY: format-prettier
+format-prettier: build-formatter ## Reformat js/ts/yaml
+	docker-compose -f docker-compose.formatter.yml up format-prettier
+
+.PHONY: format-packer
+format-packer: ## Reformat all Packer HCLs
+	packer fmt -recursive packer/
 
 .PHONY: format
-format: format-python format-js format-rust ## Reformat all code
+format: format-python format-prettier format-rust format-packer ## Reformat all code
 
 .PHONY: package-python-libs
 package-python-libs: ## Create Python distributions for public libraries
@@ -391,3 +399,7 @@ repl: ## Run an interactive ipython repl that can import from grapl-common etc
 
 .PHONY: pulumi-prep
 pulumi-prep: graplctl lambdas build-ux ## Prepare some artifacts in advance of running a Pulumi update (does not run Pulumi!)
+
+.PHONY: update-shared
+update-buildkite-shared: ## Pull in changes from grapl-security/buildkite-common
+	git subtree pull --prefix .buildkite/shared git@github.com:grapl-security/buildkite-common.git main --squash

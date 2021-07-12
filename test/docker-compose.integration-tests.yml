@@ -3,7 +3,6 @@ version: "3.8"
 # environment variable PWD is assumed to be grapl root directory
 
 services:
-
   rust-integration-tests:
     image: grapl/rust-integration-tests:${TAG:-latest}
     build:
@@ -37,8 +36,8 @@ services:
       - ASSET_ID_MAPPINGS=${DEPLOYMENT_NAME}-asset_id_mappings
       - REDIS_ENDPOINT
 
-  grapl-analyzerlib-integration-tests:
-    image: grapl/grapl-analyzerlib-test:${TAG:-latest}
+  analyzerlib-integration-tests:
+    image: grapl/analyzerlib-test:${TAG:-latest}
     build:
       context: ${PWD}/src
       dockerfile: ./python/Dockerfile
@@ -55,7 +54,7 @@ services:
   # grapl-analyzer-deployer-integration-tests:
 
   analyzer-executor-integration-tests:
-    image: grapl/grapl-analyzer-executor-test:${TAG:-latest}
+    image: grapl/analyzer-executor-test:${TAG:-latest}
     build:
       context: ${PWD}/src
       dockerfile: ./python/Dockerfile
