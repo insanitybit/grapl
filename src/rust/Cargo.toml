@@ -8,7 +8,6 @@ members = [
     "./generators/graph-generator-lib",
     "./generators/osquery-subgraph-generator",
     "./generators/sysmon-subgraph-generator",
-    "./rust-proto",
     "./graph-merger",
     "./grapl",
     "./grapl-config",
