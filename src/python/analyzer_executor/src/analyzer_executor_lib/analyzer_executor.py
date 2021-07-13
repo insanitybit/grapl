@@ -185,10 +185,10 @@ class AnalyzerExecutor:
                     s3,
                     f"{os.environ['DEPLOYMENT_NAME']}-analyzers-bucket",
                     message["key"],
-                ).decode('utf8')
+                ).decode("utf8")
             analyzer_name = message["key"].split("/")[-2]
 
-            subgraph = SubgraphView.from_proto(client, bytes(message['subgraph']))
+            subgraph = SubgraphView.from_proto(client, bytes(message["subgraph"]))
 
             # TODO: Validate signature of S3 file
             LOGGER.info(f"event {event} {envelope.metadata}")
