@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
 
-# Drop any AssumeRole credentials prior to artifact upload, so we can
-# upload to our private bucket.
-if [[ -n "${AWS_ASSUME_ROLE_ARN:-}" && "${AWS_ASSUME_ROLE_PLUGIN_ENABLED:-}" == "1" ]] ; then
-    echo "--- Before dropping credentials"
-    aws sts get-caller-identity
+# # Drop any AssumeRole credentials prior to artifact upload, so we can
+# # upload to our private bucket.
+# if [[ -n "${AWS_ASSUME_ROLE_ARN:-}" && "${AWS_ASSUME_ROLE_PLUGIN_ENABLED:-}" == "1" ]] ; then
+#     echo "--- Before dropping credentials"
+#     aws sts get-caller-identity
 
-    echo "--- Unsetting AWS environment variables set by aws-assume-role plugin"
-    unset AWS_ACCESS_KEY_ID
-    unset AWS_SECRET_ACCESS_KEY
-    unset AWS_SESSION_TOKEN
-    # unset AWS_REGION
-    # unset AWS_DEFAULT_REGION
+#     echo "--- Unsetting AWS environment variables set by aws-assume-role plugin"
+#     unset AWS_ACCESS_KEY_ID
+#     unset AWS_SECRET_ACCESS_KEY
+#     unset AWS_SESSION_TOKEN
+#     # unset AWS_REGION
+#     # unset AWS_DEFAULT_REGION
 
-    echo "--- After dropping credentials"
-    aws sts get-caller-identity
-fi
+#     echo "--- After dropping credentials"
+#     aws sts get-caller-identity
+# fi
