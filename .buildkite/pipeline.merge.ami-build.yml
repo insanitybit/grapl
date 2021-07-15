@@ -10,41 +10,31 @@ env:
 # :(
 
 steps:
-  - label: ":packer: AMI Build Server"
-    command: ".buildkite/scripts/build_packer_ci.sh"
-    key: "ami-build-server" # Used to tag the Packer Builder instance
-    plugins:
-      - docker#v3.8.0:
-          image: "hashicorp/packer:1.7.2"
-          entrypoint: bash
-          propagate-aws-auth-tokens: true
-          environment:
-            - "BUILDKITE_BRANCH"
-            - "BUILDKITE_BUILD_NUMBER"
-            - "BUILDKITE_COMMIT"
-            - "BUILDKITE_PIPELINE_NAME"
-            - "BUILDKITE_STEP_KEY"
-            - "PACKER_IMAGE_NAME=grapl-nomad-consul-server"
-    agents:
-      queue: "packer-staging"
-    # artifact_paths:
-    #   - "*.packer-manifest.json"
+  # - label: ":packer: AMI Build Server"
+  #   command: ".buildkite/scripts/build_packer_ci.sh"
+  #   key: "ami-build-server" # Used to tag the Packer Builder instance
+  #   plugins:
+  #     - docker#v3.8.0:
+  #         image: "hashicorp/packer:1.7.2"
+  #         entrypoint: bash
+  #         propagate-aws-auth-tokens: true
+  #         environment:
+  #           - "BUILDKITE_BRANCH"
+  #           - "BUILDKITE_BUILD_NUMBER"
+  #           - "BUILDKITE_COMMIT"
+  #           - "BUILDKITE_PIPELINE_NAME"
+  #           - "BUILDKITE_STEP_KEY"
+  #           - "PACKER_IMAGE_NAME=grapl-nomad-consul-server"
+  #   agents:
+  #     queue: "packer-staging"
+  #   # artifact_paths:
+  #   #   - "*.packer-manifest.json"
 
   - label: ":packer: AMI Build Client"
     command: ".buildkite/scripts/build_packer_ci.sh"
     key: "ami-build-client" # Used to tag the Packer Builder instance
-    plugins:
-      - docker#v3.8.0:
-          image: "hashicorp/packer:1.7.2"
-          entrypoint: bash
-          propagate-aws-auth-tokens: true
-          environment:
-            - "BUILDKITE_BRANCH"
-            - "BUILDKITE_BUILD_NUMBER"
-            - "BUILDKITE_COMMIT"
-            - "BUILDKITE_PIPELINE_NAME"
-            - "BUILDKITE_STEP_KEY"
-            - "PACKER_IMAGE_NAME=grapl-nomad-consul-client"
+    env:
+      PACKER_IMAGE_NAME: "grapl-nomad-consul-client"
     agents:
       queue: "packer-staging"
     # artifact_paths:
