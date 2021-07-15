@@ -10,30 +10,46 @@ env:
 # :(
 
 steps:
-  - label: ":packer: AMI Build"
+  - label: ":packer: AMI Build Server"
     command: ".buildkite/scripts/build_packer_ci.sh"
-    key: "ami-build" # Used to tag the Packer Builder instance
+    key: "ami-build-server" # Used to tag the Packer Builder instance
     plugins:
       - docker#v3.8.0:
           image: "hashicorp/packer:1.7.2"
           entrypoint: bash
+          propagate-aws-auth-tokens: true
           environment:
             - "BUILDKITE_BRANCH"
             - "BUILDKITE_BUILD_NUMBER"
             - "BUILDKITE_COMMIT"
             - "BUILDKITE_PIPELINE_NAME"
             - "BUILDKITE_STEP_KEY"
-
-          propagate-environment: true
+            - "PACKER_IMAGE_NAME=grapl-nomad-consul-server"
     agents:
-      # TODO: change this to a different queue
-      # https://github.com/grapl-security/issue-tracker/issues/613
-      queue: "packer"
+      queue: "packer-staging"
+
+  - label: ":packer: AMI Build Client"
+    command: ".buildkite/scripts/build_packer_ci.sh"
+    key: "ami-build-client" # Used to tag the Packer Builder instance
+    plugins:
+      - docker#v3.8.0:
+          image: "hashicorp/packer:1.7.2"
+          entrypoint: bash
+          propagate-aws-auth-tokens: true
+          environment:
+            - "BUILDKITE_BRANCH"
+            - "BUILDKITE_BUILD_NUMBER"
+            - "BUILDKITE_COMMIT"
+            - "BUILDKITE_PIPELINE_NAME"
+            - "BUILDKITE_STEP_KEY"
+            - "PACKER_IMAGE_NAME=grapl-nomad-consul-client"
+    agents:
+      queue: "packer-staging"
 
   - wait
 
-  # This just has to extract the AMI ID and jam it into the artifact
+  # This just has to extract the AMI IDs and jam it into the artifact
   # store to pick up later.
-  - label: ":writing_hand: Record AMI ID"
+  - label: ":writing_hand: Record AMI IDs"
     command:
       - .buildkite/scripts/record_artifacts.sh

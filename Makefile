@@ -139,7 +139,7 @@ build-test-unit-js:
 		--file ./test/docker-compose.unit-tests-js.yml
 
 .PHONY: build-test-typecheck
-build-test-typecheck:
+build-test-typecheck: build-python-wheels
 	docker buildx bake --file ./test/docker-compose.typecheck-tests.yml
 
 .PHONY: build-test-integration
@@ -152,8 +152,12 @@ build-test-e2e: build-services
 	$(WITH_LOCAL_GRAPL_ENV) \
 	$(DOCKER_BUILDX_BAKE) --file ./test/docker-compose.e2e-tests.yml
 
+.PHONY: build-python-wheels
+build-python-wheels:  ## Build all Python wheels
+	./pants filter --target-type=python_distribution :: | xargs ./pants package
+
 .PHONY: build-services
-build-services: graplctl lambdas ## Build Grapl services
+build-services: graplctl lambdas build-python-wheels ## Build Grapl services
 	$(DOCKER_BUILDX_BAKE) --file docker-compose.build.yml
 
 .PHONY: build-formatter
@@ -197,7 +201,7 @@ test: test-unit test-integration test-e2e test-typecheck ## Run all tests
 .PHONY: test-unit
 test-unit: export COMPOSE_PROJECT_NAME := grapl-test-unit
 test-unit: export COMPOSE_FILE := ./test/docker-compose.unit-tests-rust.yml:./test/docker-compose.unit-tests-js.yml
-test-unit: build-test-unit test-unit-python ## Build and run unit tests
+test-unit: build-test-unit test-unit-python test-unit-shell ## Build and run unit tests
 	test/docker-compose-with-error.sh
 
 .PHONY: test-unit-rust
@@ -209,9 +213,16 @@ test-unit-rust: build-test-unit-rust ## Build and run unit tests - Rust only
 .PHONY: test-unit-python
 # Long term, it would be nice to organize the tests with Pants
 # tags, rather than pytest tags
-# If you need to `pdb` these tests, add a `--debug` between `test` and `::`
+# If you need to `pdb` these tests, add a `--debug` after `./pants test`
 test-unit-python: ## Run Python unit tests under Pants
-	./pants --tag="-needs_work" test :: --pytest-args="-m \"not integration_test\""
+	./pants filter --filter-target-type="python_tests" :: \
+	| xargs ./pants --tag="-needs_work" test --pytest-args="-m \"not integration_test\""
+
+
+.PHONY: test-unit-shell
+test-unit-shell: ## Run shunit2 tests under Pants
+	./pants filter --filter-target-type="shunit2_tests" :: \
+	| xargs ./pants test
 
 .PHONY: test-unit-js
 test-unit-js: export COMPOSE_PROJECT_NAME := grapl-test-unit-js
