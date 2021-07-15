@@ -27,15 +27,15 @@ build_packer_ci() {
     # Both defined in packer.sh
     build_ami "${PACKER_IMAGE_NAME}"
 
-    echo "--- Unsetting AWS environment variables set by aws-assume-role plugin"
-    unset AWS_ACCESS_KEY_ID
-    unset AWS_SECRET_ACCESS_KEY
-    unset AWS_SESSION_TOKEN
+    # echo "--- Unsetting AWS environment variables set by aws-assume-role plugin"
+    # unset AWS_ACCESS_KEY_ID
+    # unset AWS_SECRET_ACCESS_KEY
+    # unset AWS_SESSION_TOKEN
 
-    echo "--- Identity test after Packer run"
-    aws sts get-caller-identity
+    # echo "--- Identity test after Packer run"
+    # aws sts get-caller-identity
 
-    upload_manifest "${PACKER_IMAGE_NAME}"
+    # upload_manifest "${PACKER_IMAGE_NAME}"
 }
 
 build_packer_ci
