@@ -27,6 +27,8 @@ steps:
             - "PACKER_IMAGE_NAME=grapl-nomad-consul-server"
     agents:
       queue: "packer-staging"
+    artifact_paths:
+      - "*.packer-manifest.json"
 
   - label: ":packer: AMI Build Client"
     command: ".buildkite/scripts/build_packer_ci.sh"
@@ -45,6 +47,8 @@ steps:
             - "PACKER_IMAGE_NAME=grapl-nomad-consul-client"
     agents:
       queue: "packer-staging"
+    artifact_paths:
+      - "*.packer-manifest.json"
 
   - wait
 

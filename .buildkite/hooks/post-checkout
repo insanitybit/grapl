@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo "--- Who am I?"
+aws sts get-caller-identity
