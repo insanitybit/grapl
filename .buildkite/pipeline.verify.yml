@@ -190,6 +190,10 @@ steps:
       queue: "packer-staging"
 
     # How does this WORK?!
+    # I pass in the (assume-role) credentials and run packer: cool
+    # I drop the variables
+    # I pass in the upload variables
+    # Does a container have access to the IMDS? Apparently so!
   - label: "Test Packer Build with in-command role-dropping and full env"
     command: "packer_test.sh"
     key: "drop-with-env"
@@ -247,7 +251,7 @@ steps:
     agents:
       queue: "packer-staging"
 
-  # Artifact command post-command hook runs after repository post-command hook.
+  # NOTE: Artifact command post-command hook runs after repository post-command hook.
   # With no drop, this fails, as expected
   - label: "Test Packer Build with artifacts plugin for upload, permission drop"
     command: "packer_test.sh"
@@ -265,13 +269,14 @@ steps:
     agents:
       queue: "packer-staging"
 
+  # This legitimately works, and is about the only one that makes sense.
   - label: "Test Packer natively, internal upload, with permission drop"
     command: "packer_test.sh"
     key: "native-with-drop"
     agents:
       queue: "packer-staging"
 
-
+  # This also fails
   - label: "Test Packer Build with artifacts plugin for upload, post-command permission drop"
     command: "packer_test.sh"
     key: "artifact-plugin-with-post-command-drop"
