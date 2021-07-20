@@ -286,3 +286,38 @@ steps:
             - "packer-manifest.json"
     agents:
       queue: "packer-staging"
+
+
+  - label: "Environment of Docker: bare"
+    command: env
+    plugins:
+      - docker#v3.8.0:
+          image: "ubuntu"
+
+  - label: "Environment of Docker: propagated, no env"
+    command: env
+    plugins:
+      - docker#v3.8.0:
+          image: "ubuntu"
+          propagate-environment: true
+
+
+  - label: "Environment of Docker: propagated, env"
+    command: env
+    env:
+      SECRET_MESSAGE: "Hola Mundo"
+    plugins:
+      - docker#v3.8.0:
+          image: "ubuntu"
+          propagate-environment: true
+
+
+  - label: "Environment of Docker: propagated, env, rebinding"
+    command: env
+    env:
+      SECRET_MESSAGE: "Hola Mundo"
+      GIT_SHA: "${BUILDKITE_COMMIT}"
+    plugins:
+      - docker#v3.8.0:
+          image: "ubuntu"
+          propagate-environment: true
