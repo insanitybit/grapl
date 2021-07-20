@@ -2,7 +2,7 @@
 
 # Drop any AssumeRole credentials prior to artifact upload, so we can
 # upload to our private bucket.
-if [ "${BUILDKITE_STEP_KEY}" == "post-command" ]; then
+if [[ "${BUILDKITE_STEP_KEY}" =~ "post-command" ]]; then
 
     echo "--- Before dropping credentials"
     aws sts get-caller-identity
