@@ -5,12 +5,16 @@ set -euo pipefail
 dropping_steps=(
     with-drop
     drop-with-env
+    artifact-plugin-with-drop
+    native-with-drop
 )
 
 uploading_steps=(
     no-drop
+    native-no-drop
     with-drop
     drop-with-env
+    native-with-drop
 )
 
 should_drop() {
@@ -31,14 +35,24 @@ should_upload() {
     return 1
 }
 
-drop_role() {
-    export AWS_ACCESS_KEY_ID
-    export AWS_SECRET_ACCESS_KEY
-    export AWS_SESSION_TOKEN
+should_identify() {
+    if [[ "${BUILDKITE_STEP_KEY}" =~ "native" ]]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
-#echo "--- :aws: Identity Before Packer"
-#aws sts get-current-identity
+drop_role() {
+    unset AWS_ACCESS_KEY_ID
+    unset AWS_SECRET_ACCESS_KEY
+    unset AWS_SESSION_TOKEN
+}
+
+if should_identify; then
+    echo "--- :aws: Identity Before Packer"
+    aws sts get-caller-identity
+fi
 
 echo "--- :packer: Packer build"
 echo "THIS IS A TEST" > packer-manifest.json
@@ -49,8 +63,11 @@ if should_drop; then
 fi
 
 if should_upload; then
-#    echo "--- :aws: Identity before Upload (in command)"
-#    aws sts get-current-identity
+
+    if should_identify; then
+        echo "--- :aws: Identity before Upload (in command)"
+        aws sts get-caller-identity
+    fi
 
     echo "--- :buildkite: Uploading manifest"
     buildkite-agent artifact upload packer-manifest.json

@@ -231,3 +231,35 @@ steps:
       queue: "packer-staging"
     artifact_paths:
       - "packer-manifest.json"
+
+  - label: "Test Packer Build with artifacts plugin for upload, no permission drop"
+    command: "packer_test.sh"
+    key: "artifact-plugin-no-drop"
+    plugins:
+      - artifacts#v1.3.0:
+          upload:
+            - "packer-manifest.json"
+    agents:
+      queue: "packer-staging"
+
+  - label: "Test Packer Build with artifacts plugin for upload, permission drop"
+    command: "packer_test.sh"
+    key: "artifact-plugin-with-drop"
+    plugins:
+      - artifacts#v1.3.0:
+          upload:
+            - "packer-manifest.json"
+    agents:
+      queue: "packer-staging"
+
+  - label: "Test Packer natively, internal upload, no permission drop"
+    command: "packer_test.sh"
+    key: "native-no-drop"
+    agents:
+      queue: "packer-staging"
+
+  - label: "Test Packer natively, internal upload, with permission drop"
+    command: "packer_test.sh"
+    key: "native-with-drop"
+    agents:
+      queue: "packer-staging"
