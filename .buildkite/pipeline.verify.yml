@@ -321,3 +321,46 @@ steps:
       - docker#v3.8.0:
           image: "ubuntu"
           propagate-environment: true
+
+
+  ########################################################################
+
+  # Goes to Buildkite
+  - label: "Internal upload, keep assumed role"
+    command: artifact_test.sh
+    env:
+      DROP_ASSUMED_ROLE: false
+      UPLOAD_FILE_IN_COMMAND: true
+    agents:
+      queue: "packer-staging"
+
+  # Goes to private S3 bucket
+  - label: "Internal upload, drop assumed role"
+    command: artifact_test.sh
+    env:
+      DROP_ASSUMED_ROLE: true
+      UPLOAD_FILE_IN_COMMAND: true
+    agents:
+      queue: "packer-staging"
+
+  # Tries to go to private S3 bucket, fails
+  - label: "External upload, keep assumed role"
+    command: artifact_test.sh
+    env:
+      DROP_ASSUMED_ROLE: false
+      UPLOAD_FILE_IN_COMMAND: false
+    agents:
+      queue: "packer-staging"
+    artifact_paths:
+      - "test.txt"
+
+  # Tries to go to private S3 bucket, fails
+  - label: "External upload, drop assumed role"
+    command: artifact_test.sh
+    env:
+      DROP_ASSUMED_ROLE: true
+      UPLOAD_FILE_IN_COMMAND: false
+    agents:
+      queue: "packer-staging"
+    artifact_paths:
+      - "test.txt"
