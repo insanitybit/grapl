@@ -2,6 +2,8 @@
 env:
   PANTS_CONFIG_FILES: "['pants.toml', 'pants.ci.toml']"
   TAG: ci-pipeline
+  BUILDKITE_AGENT_DEBUG: 1
+  BUILDKITE_AGENT_DEBUG_HTTP: 1
 
 # TODO: Cache for JS, Rust deps
 

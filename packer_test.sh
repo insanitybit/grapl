@@ -70,5 +70,5 @@ if should_upload; then
     fi
 
     echo "--- :buildkite: Uploading manifest"
-    buildkite-agent artifact upload packer-manifest.json
+    buildkite-agent artifact upload --debug --debug-http packer-manifest.json
 fi
