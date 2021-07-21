@@ -13,7 +13,7 @@ from infra.api import Api
 from infra.autotag import register_auto_tags
 from infra.bucket import Bucket
 from infra.cache import Cache
-from infra.config import DEPLOYMENT_NAME, LOCAL_GRAPL
+from infra.config import DEPLOYMENT_NAME, LOCAL_GRAPL, REAL_DEPLOYMENT
 from infra.dgraph_cluster import DgraphCluster, LocalStandInDgraphCluster
 from infra.dgraph_ttl import DGraphTTL
 from infra.e2e_test_runner import E2eTestRunner
@@ -23,6 +23,7 @@ from infra.kafka import Kafka
 from infra.metric_forwarder import MetricForwarder
 from infra.network import Network
 from infra.node_identifier import NodeIdentifier
+from infra.nomad_cluster import NomadCluster
 from infra.osquery_generator import OSQueryGenerator
 from infra.pipeline_dashboard import PipelineDashboard
 from infra.provision_lambda import Provisioner
@@ -44,10 +45,11 @@ def _create_dgraph_cluster(network: Network) -> DgraphCluster:
 
 def main() -> None:
 
-    if not LOCAL_GRAPL:
+    if not (LOCAL_GRAPL or REAL_DEPLOYMENT):
         # Fargate services build their own images and need this
         # variable currently. We don't want this to be checked in
-        # Local Grapl, though.
+        # Local Grapl, or "real" deployments, though; only developer
+        # sandboxes.
         if not os.getenv("DOCKER_BUILDKIT"):
             raise KeyError("Please re-run with 'DOCKER_BUILDKIT=1'")
 
@@ -117,6 +119,11 @@ def main() -> None:
         kafka = Kafka("kafka")
 
     else:
+        nomad_cluster = NomadCluster(
+            "nomad-cluster",
+            network=network,
+        )
+
         # No Fargate or Elasticache in Local Grapl
         cache = Cache("main-cache", network=network)
 
@@ -220,20 +227,14 @@ def main() -> None:
         forwarder=forwarder,
         dgraph_cluster=dgraph_cluster,
     )
-    # Note: This requires `yarn build` to have been run first
-    if not LOCAL_GRAPL:
-        from infra.config import repository_path
 
-        # Not doing this in Local Grapl at the moment, as we have
-        # another means of doing this. We should harmonize this, of
-        # course.
-        ENGAGEMENT_VIEW_DIR = repository_path("src/js/engagement_view/build").resolve()
-        try:
-            ux_bucket.upload_to_bucket(
-                ENGAGEMENT_VIEW_DIR, root_path=ENGAGEMENT_VIEW_DIR
-            )
-        except FileNotFoundError as e:
-            raise Exception("You probably need to `make pulumi-prep` first") from e
+    if not LOCAL_GRAPL:
+        from infra.ux import populate_ux_bucket
+
+        # TODO: We are not populating the UX bucket in Local Grapl at
+        # the moment, as we have another means of doing this. We
+        # should harmonize this, of course.
+        populate_ux_bucket(ux_bucket)
 
         Provisioner(
             network=network,

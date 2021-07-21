@@ -1,7 +1,7 @@
 import os
 import re
 from pathlib import Path
-from typing import Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 import pulumi_aws as aws
 from typing_extensions import Final
@@ -44,6 +44,15 @@ _validate_deployment_name()
 # Local Grapl (as opposed to any other real deployment)
 LOCAL_GRAPL = DEPLOYMENT_NAME == "local-grapl"
 
+# A "real" deployment is one that will be deployed in our CI/CD
+# environment, not a developer sandbox environment.
+#
+# (At the moment, we only have "testing"; this can grow to include
+# other deployments in the future. Another option would be to declare
+# a convention for developer sandbox environments and have logic pivot
+# on that, instead.)
+REAL_DEPLOYMENT = DEPLOYMENT_NAME in ("testing")
+
 # For importing some objects, we have to construct a URL, ARN, etc
 # that includes the AWS account ID.
 AWS_ACCOUNT_ID = "000000000000" if LOCAL_GRAPL else aws.get_caller_identity().account_id
@@ -74,6 +83,10 @@ DEFAULT_ENVVARS = {
 }
 
 
+class ArtifactException(Exception):
+    pass
+
+
 def _require_env_var(key: str) -> str:
     """
     Grab a key from env variables, or fallback to Pulumi.xyz.yaml
@@ -87,8 +100,7 @@ def _require_env_var(key: str) -> str:
     return value
 
 
-# Boy, this env name was not forward-thinking
-OPERATIONAL_ALARMS_EMAIL = _require_env_var("GRAPL_CDK_OPERATIONAL_ALARMS_EMAIL")
+OPERATIONAL_ALARMS_EMAIL = _require_env_var("GRAPL_OPERATIONAL_ALARMS_EMAIL")
 
 
 def configurable_envvar(service_name: str, var: str) -> str:
@@ -134,6 +146,7 @@ def configurable_envvars(service_name: str, vars: Sequence[str]) -> Mapping[str,
     return {v: configurable_envvar(service_name, v) for v in vars}
 
 
+# TODO: The verbiage "version" here is a bit restrictive.
 def configured_version_for(artifact_name: str) -> Optional[str]:
     """Given the name of an artifact, retrieves the version of that
     artifact from the current stack configuration. Returns `None` if
@@ -152,3 +165,22 @@ def configured_version_for(artifact_name: str) -> Optional[str]:
     artifacts = pulumi.Config().get_object("artifacts") or {}
     version = artifacts.get(artifact_name)
     return version
+
+
+# This should be (x: str, y: Type[T]) -> T, but: https://github.com/python/mypy/issues/9773
+def require_artifact(artifact_name: str) -> Any:
+    """
+    Given the name of an artifact, retrieves the value of that
+    artifact from the current stack configuration.
+    Raise a helpful exception if no entry is found for that artifact.
+    """
+    artifacts = pulumi.Config().get_object("artifacts") or {}
+    artifact = artifacts.get(artifact_name)
+    if artifact is None:
+        raise ArtifactException(
+            f"We couldn't find an artifact named {artifact_name} in your stack."
+            "\nYou likely want to run `pulumi/bin/copy_artifacts_from_rc.sh`, which"
+            " will grab concrete artifact values from our latest `origin/rc` branch."
+            "\nDon't forget to remove artifacts you don't need after running it!"
+        )
+    return artifact

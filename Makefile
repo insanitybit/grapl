@@ -176,6 +176,24 @@ graplctl: ## Build graplctl and install it to the project root
 build-ux: ## Build website assets
 	cd src/js/engagement_view && yarn install && yarn build
 
+# Create the dist directory if necessary; don't need to document this
+# formally for `make help`, though.
+dist:
+	mkdir dist
+
+# This is used to create the artifact that will be uploaded to our
+# artifact repository in CI, and will be the artifact that is used by
+# our Pulumi deployments.
+.PHONY: ux-tarball
+ux-tarball: build-ux dist ## Build website asset tarball
+	tar \
+		--create \
+		--gzip \
+		--verbose \
+		--file="dist/grapl-ux.tar.gz" \
+		--directory=src/js/engagement_view/build \
+		.
+
 .PHONY: lambdas
 lambdas: lambdas-rust lambdas-js lambdas-python ## Generate all lambda zip files
 
@@ -411,6 +429,6 @@ repl: ## Run an interactive ipython repl that can import from grapl-common etc
 .PHONY: pulumi-prep
 pulumi-prep: graplctl lambdas build-ux ## Prepare some artifacts in advance of running a Pulumi update (does not run Pulumi!)
 
-.PHONY: update-shared
+.PHONY: update-buildkite-shared
 update-buildkite-shared: ## Pull in changes from grapl-security/buildkite-common
 	git subtree pull --prefix .buildkite/shared git@github.com:grapl-security/buildkite-common.git main --squash

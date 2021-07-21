@@ -8,6 +8,7 @@ steps:
     plugins:
       - chronotc/monorepo-diff#v2.0.4:
           diff: .buildkite/shared/scripts/diff.sh
+          log_level: "debug"
           watch:
             - path:
                 - "src/rust/" # This is not minimal, obviously
@@ -25,6 +26,7 @@ steps:
     plugins:
       - chronotc/monorepo-diff#v2.0.4:
           diff: .buildkite/shared/scripts/diff.sh
+          log_level: "debug"
           watch:
             - path:
                 - "src/js/" # This is not minimal, obviously
@@ -79,6 +81,7 @@ steps:
     plugins:
       - chronotc/monorepo-diff#v2.0.4:
           diff: .buildkite/shared/scripts/diff.sh
+          log_level: "debug"
           watch:
             - path:
                 - "packer/"
@@ -90,7 +93,20 @@ steps:
                 label: ":pipeline: Upload AMI Build"
                 command: "buildkite-agent pipeline upload .buildkite/pipeline.merge.ami-build.yml"
 
-  # This will also wait for the uploaded pipeline, if we did decide to upload it.
+  - label: ":thinking_face: UX Build?"
+    plugins:
+      - chronotc/monorepo-diff#v2.0.4:
+          diff: .buildkite/shared/scripts/diff.sh
+          log_level: "debug"
+          watch:
+            - path:
+                - "src/js/engagement_view/"
+                - ".buildkite/scripts/upload_ux_assets.sh"
+                - ".buildkite/pipeline.merge.ux-build.yml"
+              config:
+                label: ":pipeline: Upload UX Build"
+                command: "buildkite-agent pipeline upload .buildkite/pipeline.merge.ux-build.yml"
+
   - wait
 
   # The names of the input files depend on the files that can be
@@ -104,6 +120,7 @@ steps:
         container_artifacts.json
         grapl-nomad-consul-server.artifacts.json
         grapl-nomad-consul-client.artifacts.json
+        ux_artifacts.json
 
   - wait
 
@@ -119,10 +136,7 @@ steps:
       # we have a clean slate.
       BUILDKITE_CLEAN_CHECKOUT: true
     agents:
-      # Has to be pulumi, even though we're not *running* pulumi; we
-      # just have to log in so we can manipulate pulumi configs.
-      # `pulumi-cicd` chosen due to https://github.com/grapl-security/issue-tracker/issues/618
-      queue: "pulumi-cicd"
+      queue: "rc"
 
   - wait
 
