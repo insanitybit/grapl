@@ -4,6 +4,7 @@ set -euo pipefail
 
 echo "--- :aws: Initial identity in command"
 aws sts get-caller-identity
+echo
 
 echo "--- Write a file to be uploaded"
 echo "THIS IS A TEST" > test.txt
@@ -16,6 +17,7 @@ if [ "${DROP_ASSUMED_ROLE}" == "true" ]; then
 
     echo "--- :aws: Identity after dropping assumed role"
     aws sts get-caller-identity
+    echo
 else
     echo "--- NOT dropping assumed role!"
 fi
@@ -23,7 +25,7 @@ fi
 if [ "${UPLOAD_FILE_IN_COMMAND}" == "true" ]; then
     echo "--- :aws: Identity before upload in command"
     aws sts get-caller-identity
-
+    echo
     echo "--- :buildkite: Uploading manifest"
     buildkite-agent artifact upload test.txt
 else

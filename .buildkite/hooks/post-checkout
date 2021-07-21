@@ -5,3 +5,4 @@ export BUILDKITE_AGENT_DEBUG_HTTP=true
 
 echo "--- :aws: Who am I?"
 aws sts get-caller-identity
+echo
