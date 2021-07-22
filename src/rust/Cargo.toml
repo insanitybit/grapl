@@ -8,7 +8,6 @@ members = [
     "./generators/graph-generator-lib",
     "./generators/osquery-generator",
     "./generators/sysmon-generator",
-    "./graph-descriptions",
     "./graph-merger",
     "./grapl",
     "./grapl-config",

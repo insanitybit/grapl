@@ -147,7 +147,7 @@ ProcessQuery()
 
 ##### All Together
 
-This query matches a process with a process_name that either is _not_ 'foo' but
+This query matches a process with a process*name that either is \_not* 'foo' but
 ends with '.exe', _or_ it will match a process with a process containing "bar"
 _and_ "baz".
 
