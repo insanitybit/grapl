@@ -32,6 +32,8 @@ from infra.secret import JWTSecret, TestUserPassword
 from infra.service import ServiceLike
 from infra.sysmon_generator import SysmonGenerator
 
+import pulumi
+
 
 def _create_dgraph_cluster(network: Network) -> DgraphCluster:
     if LOCAL_GRAPL:
@@ -86,6 +88,7 @@ def main() -> None:
     # TODO: No _infrastructure_ currently *writes* to this bucket
     analyzers_bucket = Bucket("analyzers-bucket", sse=True)
     model_plugins_bucket = Bucket("model-plugins-bucket", sse=False)
+    pulumi.export("model-plugins-bucket", model_plugins_bucket.bucket)
 
     services: List[ServiceLike] = []
 

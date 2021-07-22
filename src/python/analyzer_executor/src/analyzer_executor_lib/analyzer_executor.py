@@ -76,12 +76,14 @@ class AnalyzerExecutor:
 
     def __init__(
         self,
+        model_plugins_bucket: str,
         message_cache: EitherCache,
         hit_cache: EitherCache,
         chunk_size: int,
         logger: Logger,
         metric_reporter: MetricReporter,
     ) -> None:
+        self.model_plugins_bucket = model_plugins_bucket
         self.message_cache = message_cache
         self.hit_cache = hit_cache
         self.chunk_size = chunk_size
@@ -113,8 +115,15 @@ class AnalyzerExecutor:
 
         metric_reporter = MetricReporter.create("analyzer-executor")
 
+        model_plugins_bucket = env["GRAPL_MODEL_PLUGINS_BUCKET"]
+
         return AnalyzerExecutor(
-            message_cache, hit_cache, chunk_size, LOGGER, metric_reporter
+            model_plugins_bucket,
+            message_cache,
+            hit_cache,
+            chunk_size,
+            LOGGER,
+            metric_reporter,
         )
 
     def check_caches(
@@ -161,7 +170,7 @@ class AnalyzerExecutor:
         s3 = S3ResourceFactory(boto3).from_env()
 
         load_plugins(
-            os.environ["DEPLOYMENT_NAME"],
+            self.model_plugins_bucket,
             s3.meta.client,
             os.path.abspath(MODEL_PLUGINS_DIR),
         )

@@ -315,6 +315,12 @@ services:
 
   analyzer-executor:
     image: grapl/analyzer-executor:${TAG:-latest}
+    # Overriding the built-in command so we can inject Pulumi information
+    command: |
+      /bin/sh -c '
+        export GRAPL_MODEL_PLUGINS_BUCKET=$$(cat /pulumi-outputs/model-plugins-bucket) &&
+        python3 analyzer_executor/src/run.py
+      '
     environment:
       <<: *aws-env
       DEPLOYMENT_NAME: ${DEPLOYMENT_NAME}
@@ -342,6 +348,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      pulumi:
+        # We must wait until Pulumi has created the buckets to know what their names are
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: pulumi_outputs
+        target: /pulumi-outputs
+        read_only: true
+
 
   model-plugin-deployer:
     image: grapl/model-plugin-deployer:${TAG:-latest}
@@ -483,6 +498,7 @@ services:
 
         # Write the necessary outputs to the shared volume, for access by other containers
         pulumi stack output prod-api-id > /home/grapl/pulumi-outputs/prod-api-id
+        pulumi stack output model-plugins-bucket > /home/grapl/pulumi-outputs/model-plugins-bucket
       "
     # Our local-grapl Pulumi stack is configured to communicate with
     # localhost. By participating in the network namespace of our
