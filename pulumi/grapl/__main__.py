@@ -83,7 +83,11 @@ def main() -> None:
     subgraphs_generated_emitter = emitter.EventEmitter("subgraphs-generated")
     subgraphs_merged_emitter = emitter.EventEmitter("subgraphs-merged")
     dispatched_analyzer_emitter = emitter.EventEmitter("dispatched-analyzer")
+
     analyzer_matched_emitter = emitter.EventEmitter("analyzer-matched-subgraphs")
+    pulumi.export(
+        "analyzer-matched-subgraphs-bucket", analyzer_matched_emitter.bucket.bucket
+    )
 
     # TODO: No _infrastructure_ currently *writes* to this bucket
     analyzers_bucket = Bucket("analyzers-bucket", sse=True)

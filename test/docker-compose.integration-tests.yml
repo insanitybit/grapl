@@ -66,6 +66,7 @@ services:
     command: bash -c '
       export GRAPL_MODEL_PLUGINS_BUCKET=$$(cat /pulumi-outputs/model-plugins-bucket) &&
       export GRAPL_ANALYZERS_BUCKET=$$(cat /pulumi-outputs/analyzers-bucket) &&
+      export GRAPL_ANALYZER_MATCHED_SUBGRAPHS_BUCKET=$$(cat /pulumi-outputs/analyzer-matched-subgraphs-bucket) &&
 
       cd analyzer_executor &&
       export PYTHONPATH="$${PYTHONPATH}:$$(pwd)/src" &&

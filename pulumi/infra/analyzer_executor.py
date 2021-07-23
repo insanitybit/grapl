@@ -33,6 +33,7 @@ class AnalyzerExecutor(FargateService):
                 **configurable_envvars("analyzer-executor", ["GRAPL_LOG_LEVEL"]),
                 "GRAPL_ANALYZERS_BUCKET": analyzers_bucket.bucket,
                 "GRAPL_MODEL_PLUGINS_BUCKET": model_plugins_bucket.bucket,
+                "GRAPL_ANALYZER_MATCHED_SUBGRAPHS_BUCKET": output_emitter.bucket.bucket,
                 "MG_ALPHAS": dgraph_cluster.alpha_host_port,
                 # TODO: We should modify this to use REDIS_ENDPOINT,
                 # like our other services.
