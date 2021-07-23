@@ -45,10 +45,11 @@ class EngagementEdge(pulumi.ComponentResource):
                     "MG_ALPHAS": dgraph_cluster.alpha_host_port,
                     "JWT_SECRET_ID": secret.secret.arn,
                     "USER_AUTH_TABLE": db.user_auth_table.name,
-                    # TODO: We *should* be passing in the name of the
-                    # notebook here, rather than assuming the name is
-                    # based on DEPLOYMENT_NAME.
                     "DEPLOYMENT_NAME": pulumi.get_stack(),
+                    # Only because Localstack doesn't support
+                    # sagemaker :(
+                    **({"GRAPL_NOTEBOOK_INSTANCE": notebook.name} if notebook else {}),
+
                 },
                 timeout=25,
                 memory_size=256,
