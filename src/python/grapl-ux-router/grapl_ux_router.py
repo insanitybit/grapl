@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     pass
 
 GRAPL_LOG_LEVEL = os.environ.get("GRAPL_LOG_LEVEL", "ERROR")
-UX_BUCKET_NAME = os.environ["UX_BUCKET_NAME"]
+UX_BUCKET_NAME = os.environ["GRAPL_UX_BUCKET"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(GRAPL_LOG_LEVEL)

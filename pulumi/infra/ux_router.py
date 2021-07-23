@@ -34,7 +34,7 @@ class UxRouter(pulumi.ComponentResource):
                 code=LambdaResolver.resolve(name),
                 env={
                     **configurable_envvars(name, ["GRAPL_LOG_LEVEL"]),
-                    "UX_BUCKET_NAME": ux_bucket.bucket,
+                    "GRAPL_UX_BUCKET": ux_bucket.bucket,
                 },
                 timeout=5,
                 memory_size=128,
