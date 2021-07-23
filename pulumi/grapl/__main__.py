@@ -87,6 +87,7 @@ def main() -> None:
 
     # TODO: No _infrastructure_ currently *writes* to this bucket
     analyzers_bucket = Bucket("analyzers-bucket", sse=True)
+    pulumi.export("analyzers-bucket", analyzers_bucket.bucket)
     model_plugins_bucket = Bucket("model-plugins-bucket", sse=False)
     pulumi.export("model-plugins-bucket", model_plugins_bucket.bucket)
 

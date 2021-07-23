@@ -65,6 +65,7 @@ services:
       target: analyzer-executor-test
     command: bash -c '
       export GRAPL_MODEL_PLUGINS_BUCKET=$$(cat /pulumi-outputs/model-plugins-bucket) &&
+      export GRAPL_ANALYZERS_BUCKET=$$(cat /pulumi-outputs/analyzers-bucket) &&
 
       cd analyzer_executor &&
       export PYTHONPATH="$${PYTHONPATH}:$$(pwd)/src" &&

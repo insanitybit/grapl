@@ -319,6 +319,7 @@ services:
     command: |
       /bin/sh -c '
         export GRAPL_MODEL_PLUGINS_BUCKET=$$(cat /pulumi-outputs/model-plugins-bucket) &&
+        export GRAPL_ANALYZERS_BUCKET=$$(cat /pulumi-outputs/analyzers-bucket) &&
         python3 analyzer_executor/src/run.py
       '
     environment:
@@ -499,6 +500,7 @@ services:
         # Write the necessary outputs to the shared volume, for access by other containers
         pulumi stack output prod-api-id > /home/grapl/pulumi-outputs/prod-api-id
         pulumi stack output model-plugins-bucket > /home/grapl/pulumi-outputs/model-plugins-bucket
+        pulumi stack output analyzers-bucket > /home/grapl/pulumi-outputs/analyzers-bucket
       "
     # Our local-grapl Pulumi stack is configured to communicate with
     # localhost. By participating in the network namespace of our

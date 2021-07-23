@@ -77,6 +77,7 @@ class AnalyzerExecutor:
     def __init__(
         self,
         model_plugins_bucket: str,
+        analyzers_bucket: str,
         message_cache: EitherCache,
         hit_cache: EitherCache,
         chunk_size: int,
@@ -84,6 +85,7 @@ class AnalyzerExecutor:
         metric_reporter: MetricReporter,
     ) -> None:
         self.model_plugins_bucket = model_plugins_bucket
+        self.analyzers_bucket = analyzers_bucket
         self.message_cache = message_cache
         self.hit_cache = hit_cache
         self.chunk_size = chunk_size
@@ -116,14 +118,16 @@ class AnalyzerExecutor:
         metric_reporter = MetricReporter.create("analyzer-executor")
 
         model_plugins_bucket = env["GRAPL_MODEL_PLUGINS_BUCKET"]
+        analyzers_bucket = env["GRAPL_ANALYZERS_BUCKET"]
 
         return AnalyzerExecutor(
-            model_plugins_bucket,
-            message_cache,
-            hit_cache,
-            chunk_size,
-            LOGGER,
-            metric_reporter,
+            model_plugins_bucket=model_plugins_bucket,
+            analyzers_bucket=analyzers_bucket,
+            message_cache=message_cache,
+            hit_cache=hit_cache,
+            chunk_size=chunk_size,
+            logger=LOGGER,
+            metric_reporter=metric_reporter,
         )
 
     def check_caches(
@@ -187,7 +191,7 @@ class AnalyzerExecutor:
             ):
                 analyzer = download_s3_file(
                     s3,
-                    f"{os.environ['DEPLOYMENT_NAME']}-analyzers-bucket",
+                    self.analyzers_bucket,
                     message["key"],
                 )
             analyzer_name = message["key"].split("/")[-2]
