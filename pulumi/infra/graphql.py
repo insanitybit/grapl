@@ -48,9 +48,6 @@ class GraphQL(pulumi.ComponentResource):
                     # actually needed in localstack anymore, provided
                     # we can properly resolve it.
                     "DEPLOYMENT_NAME": pulumi.get_stack(),
-                    # TODO: This will fail in localstack becase of the
-                    # URLs involved... actually, this doesn't appear
-                    # to be used
                     "UX_BUCKET_URL": pulumi.Output.concat(
                         "https://", ux_bucket.bucket_regional_domain_name
                     ),

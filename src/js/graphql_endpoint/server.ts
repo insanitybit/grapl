@@ -13,6 +13,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const IS_LOCAL = process.env.IS_LOCAL == "True" || null; // get this from environment
 
+// This corresponds to UX_BUCKET_URL, and only appears to be used in
+// the non-local case.
 let origin: string | boolean = true;
 let prefix = "local-grapl";
 
