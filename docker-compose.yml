@@ -295,8 +295,12 @@ services:
 
   analyzer-dispatcher:
     image: grapl/analyzer-dispatcher:${TAG:-latest}
+    command: |
+      /bin/sh -c '
+        export GRAPL_ANALYZERS_BUCKET=$$(cat /pulumi-outputs/analyzers-bucket) &&
+        /analyzer-dispatcher
+      '
     environment:
-      ANALYZER_BUCKET: "${DEPLOYMENT_NAME}-analyzers-bucket"
       <<: *aws-env
       DEAD_LETTER_QUEUE_URL: "${GRAPL_AWS_ENDPOINT}/queue/${DEPLOYMENT_NAME}-analyzer-dispatcher-dead-letter-queue"
       DEST_BUCKET_NAME: "${DEPLOYMENT_NAME}-dispatched-analyzer-bucket"
@@ -308,6 +312,15 @@ services:
     depends_on:
       localstack:
         condition: service_healthy
+      pulumi:
+        # We must wait until Pulumi has created the buckets to know what their names are
+        condition: service_completed_successfully
+    volumes:
+      - type: volume
+        source: pulumi_outputs
+        target: /pulumi-outputs
+        read_only: true
+
 
   ########################################################################
   # Python Services
