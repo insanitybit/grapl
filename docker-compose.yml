@@ -325,7 +325,6 @@ services:
       '
     environment:
       <<: *aws-env
-      DEPLOYMENT_NAME: ${DEPLOYMENT_NAME}
       DEBUG_SERVICES: "${DEBUG_SERVICES:-}"
       <<: *dgraph-env
       GRPC_ENABLE_FORK_SUPPORT: "1"
